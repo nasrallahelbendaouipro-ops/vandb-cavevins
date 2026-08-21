@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menu — V and B</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400;1,600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #F8F4EE;
+      --dark:    #111010;
+      --white:   #FFFFFF;
+      --yellow:  #E8A800;
+      --red:     #C5142B;
+      --text:    #1A1209;
+      --muted:   #7A6B58;
+      --border:  rgba(26,18,9,0.1);
+      --fd: 'Bebas Neue', sans-serif;
+      --fs: 'Playfair Display', Georgia, serif;
+      --fb: 'Inter', system-ui, sans-serif;
+      --r: 4px;
+    }
+    body {
+      background: var(--dark); color: var(--white); font-family: var(--fb);
+      min-height: 100dvh; -webkit-font-smoothing: antialiased;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,.08);
+      position: sticky; top: 0; background: var(--dark); z-index: 5;
+    }
+    .brand { font-family: var(--fd); font-size: 1.6rem; letter-spacing: .04em; }
+    .brand b { color: var(--red); font-weight: 400; }
+    .back-link {
+      font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--yellow); text-decoration: none; border: 1px solid rgba(232,168,0,.4);
+      border-radius: var(--r); padding: .4rem .7rem;
+    }
+    main { max-width: 720px; margin: 0 auto; padding: 1.25rem 1.25rem 3rem; }
+
+    .tabs {
+      display: flex; gap: .5rem; overflow-x: auto; padding-bottom: .25rem; margin-bottom: 1.1rem;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      flex: 0 0 auto; padding: .55rem 1.1rem; border-radius: 999px; border: 1px solid rgba(255,255,255,.15);
+      background: transparent; color: var(--white); font-family: var(--fb); font-size: .8rem; font-weight: 600;
+      letter-spacing: .03em; cursor: pointer; white-space: nowrap; transition: background .15s, border-color .15s, color .15s;
+    }
+    .tab[aria-selected="true"] { background: var(--yellow); border-color: var(--yellow); color: var(--dark); }
+
+    .panel { display: none; }
+    .panel.on { display: block; }
+    .page-img {
+      width: 100%; display: block; border-radius: 8px; cursor: zoom-in;
+      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+    }
+
+    .state { text-align: center; padding: 4rem 1rem; color: var(--muted); }
+    .state h2 { font-family: var(--fs); font-style: italic; color: var(--white); font-size: 1.25rem; margin-bottom: .6rem; }
+    .state p { font-size: .9rem; line-height: 1.6; }
+    .spinner {
+      width: 34px; height: 34px; border: 3px solid rgba(255,255,255,.15); border-top-color: var(--yellow);
+      border-radius: 50%; margin: 0 auto 1.2rem; animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .updated {
+      text-align: center; font-size: .72rem; color: var(--muted); margin-top: 1.5rem;
+      letter-spacing: .03em;
+    }
+
+    .lightbox {
+      position: fixed; inset: 0; background: rgba(0,0,0,.92); display: none;
+      align-items: center; justify-content: center; padding: 1rem; z-index: 20; cursor: zoom-out;
+    }
+    .lightbox.on { display: flex; }
+    .lightbox img { max-width: 100%; max-height: 100%; border-radius: 6px; }
+
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">V<b>AND</b>B</div>
+    <a class="back-link" href="reservation.html">Réserver</a>
+  </header>
+
+  <main>
+    <div id="loading-state" class="state">
+      <div class="spinner"></div>
+      <p>Chargement du menu…</p>
+    </div>
+
+    <div id="error-state" class="state hidden">
+      <h2>Menu temporairement indisponible</h2>
+      <p>Merci de consulter le menu affiché sur place en attendant.</p>
+    </div>
+
+    <div id="empty-state" class="state hidden">
+      <h2>Menu bientôt disponible</h2>
+      <p>La synchronisation avec notre carte n'a pas encore eu lieu. Revenez dans quelques instants, ou consultez le menu affiché sur place.</p>
+    </div>
+
+    <div id="menu-view" class="hidden">
+      <div id="tabs" class="tabs hidden" role="tablist"></div>
+      <div id="panels"></div>
+      <p id="updated" class="updated"></p>
+    </div>
+  </main>
+
+  <div id="lightbox" class="lightbox">
+    <img id="lightbox-img" src="" alt="" />
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://vfkjiprgawimhmieikyw.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_h5llJUqsAHX_dIo_vaYA6w_MEvGGKfc';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const loadingState = document.getElementById('loading-state');
+    const errorState = document.getElementById('error-state');
+    const emptyState = document.getElementById('empty-state');
+    const menuView = document.getElementById('menu-view');
+    const tabsEl = document.getElementById('tabs');
+    const panelsEl = document.getElementById('panels');
+    const updatedEl = document.getElementById('updated');
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+
+    function showState(el) {
+      [loadingState, errorState, emptyState, menuView].forEach(s => s.classList.add('hidden'));
+      el.classList.remove('hidden');
+    }
+
+    function relativeTime(iso) {
+      const diffMs = Date.now() - new Date(iso).getTime();
+      const mins = Math.round(diffMs / 60000);
+      if (mins < 1) return "à l'instant";
+      if (mins < 60) return `il y a ${mins} min`;
+      const hours = Math.round(mins / 60);
+      if (hours < 24) return `il y a ${hours} h`;
+      const days = Math.round(hours / 24);
+      return `il y a ${days} j`;
+    }
+
+    function pageImageUrl(pageNum, version) {
+      const path = `menu/page-${pageNum}.png`;
+      return `${SUPABASE_URL}/storage/v1/object/public/${path}?v=${encodeURIComponent(version)}`;
+    }
+
+    function openLightbox(src) {
+      lightboxImg.src = src;
+      lightbox.classList.add('on');
+    }
+    lightbox.addEventListener('click', () => lightbox.classList.remove('on'));
+
+    function renderMenu(pageCount, updatedAt, pageTitles) {
+      panelsEl.innerHTML = '';
+      tabsEl.innerHTML = '';
+
+      const showTabs = pageCount > 1;
+      tabsEl.classList.toggle('hidden', !showTabs);
+
+      for (let i = 1; i <= pageCount; i++) {
+        const panel = document.createElement('div');
+        panel.className = 'panel' + (i === 1 ? ' on' : '');
+        panel.id = `panel-${i}`;
+        panel.setAttribute('role', 'tabpanel');
+
+        const img = document.createElement('img');
+        img.className = 'page-img';
+        img.src = pageImageUrl(i, updatedAt);
+        img.alt = `Menu — page ${i}`;
+        img.loading = i === 1 ? 'eager' : 'lazy';
+        img.addEventListener('click', () => openLightbox(img.src));
+        img.addEventListener('error', () => {
+          panel.innerHTML = '<div class="state"><h2>Page indisponible</h2><p>Cette page du menu n\'a pas encore été synchronisée.</p></div>';
+        });
+        panel.appendChild(img);
+        panelsEl.appendChild(panel);
+
+        if (showTabs) {
+          const tab = document.createElement('button');
+          tab.className = 'tab';
+          tab.type = 'button';
+          tab.role = 'tab';
+          tab.textContent = (pageTitles && pageTitles[i - 1]) || `Page ${i}`;
+          tab.setAttribute('aria-controls', `panel-${i}`);
+          tab.setAttribute('aria-selected', i === 1 ? 'true' : 'false');
+          tab.addEventListener('click', () => {
+            tabsEl.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', 'false'));
+            panelsEl.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+            tab.setAttribute('aria-selected', 'true');
+            document.getElementById(`panel-${i}`).classList.add('on');
+          });
+          tabsEl.appendChild(tab);
+        }
+      }
+
+      updatedEl.textContent = `Menu mis à jour ${relativeTime(updatedAt)}`;
+      showState(menuView);
+    }
+
+    const SYNC_URL = 'https://vfkjiprgawimhmieikyw.supabase.co/functions/v1/canva-menu-sync-public';
+
+    async function checkCanvaForUpdates() {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 20000);
+        await fetch(SYNC_URL, { signal: controller.signal });
+        clearTimeout(timeout);
+      } catch (e) {
+        // Best-effort: if the live check fails or times out, just show whatever
+        // is already synced rather than blocking the page.
+      }
+    }
+
+    async function loadMenu() {
+      showState(loadingState);
+      await checkCanvaForUpdates();
+      const { data, error } = await sb.from('menu_meta').select('updated_at, page_count, page_titles').eq('id', 1).single();
+
+      if (error || !data) {
+        showState(errorState);
+        return;
+      }
+
+      if (!data.page_count || data.page_count < 1) {
+        showState(emptyState);
+        return;
+      }
+
+      renderMenu(data.page_count, data.updated_at, data.page_titles);
+    }
+
+    loadMenu();
+  </script>
+</body>
+</html>
