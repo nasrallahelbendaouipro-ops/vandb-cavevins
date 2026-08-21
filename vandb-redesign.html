@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V and B — Cave & Bar · Partageur de bons moments</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400;1,600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #F8F4EE;
+      --dark:    #111010;
+      --white:   #FFFFFF;
+      --yellow:  #E8A800;
+      --red:     #C5142B;
+      --text:    #1A1209;
+      --muted:   #7A6B58;
+      --border:  rgba(26,18,9,0.1);
+      --fd: 'Bebas Neue', sans-serif;
+      --fs: 'Playfair Display', Georgia, serif;
+      --fb: 'Inter', system-ui, sans-serif;
+      --mw: 1320px;
+      --r: 4px;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--fb); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    ul { list-style: none; }
+    .wrap { width: 100%; max-width: var(--mw); margin: 0 auto; padding: 0 2rem; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .82rem 2rem; border-radius: var(--r); cursor: pointer;
+      font-family: var(--fb); font-size: .78rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; border: 2px solid transparent;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.15); }
+    .btn-dark  { background: var(--text); color: var(--white); }
+    .btn-yellow{ background: var(--yellow); color: var(--text); }
+    .btn-red   { background: var(--red); color: var(--white); }
+    .btn-ghost { background: transparent; border-color: rgba(255,255,255,.55); color: var(--white); }
+    .btn-ghost:hover { background: rgba(255,255,255,.1); }
+    .btn-outline { background: transparent; border-color: var(--text); color: var(--text); }
+
+    /* ── Nav ── */
+    .nav {
+      position: fixed; inset: 0 0 auto 0; z-index: 900;
+      padding: 1.25rem 0; transition: background .3s, box-shadow .3s;
+    }
+    .nav.solid { background: var(--white); box-shadow: 0 1px 0 var(--border); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-family: var(--fd); font-size: 2.1rem; letter-spacing: .04em; color: var(--white); transition: color .3s; }
+    .logo b { color: var(--yellow); font-weight: 400; }
+    .nav.solid .logo { color: var(--text); }
+    .nav.solid .logo b { color: var(--red); }
+    .nav-links { display: flex; gap: 2.5rem; }
+    .nav-links a {
+      font-size: .76rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+      color: rgba(255,255,255,.85); transition: color .2s; position: relative;
+    }
+    .nav-links a::after { content:''; position:absolute; bottom:-3px; left:0; right:0; height:2px; background:var(--yellow); transform:scaleX(0); transition:transform .2s; }
+    .nav-links a:hover::after { transform:scaleX(1); }
+    .nav.solid .nav-links a { color: var(--muted); }
+    .nav.solid .nav-links a:hover { color: var(--text); }
+    .nav.solid .nav-links a::after { background: var(--red); }
+    .nav-cta { display: flex; gap: .75rem; }
+
+    /* ── Hero ── */
+    .hero { position: relative; height: 100dvh; min-height: 640px; display: flex; align-items: flex-end; overflow: hidden; }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: url('Pics/IMG_7565.jpg') center 30% / cover no-repeat;
+    }
+    .hero-veil {
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(to right, rgba(17,16,16,.78) 0%, rgba(17,16,16,.25) 55%, transparent 80%),
+        linear-gradient(to top, rgba(17,16,16,.55) 0%, transparent 45%);
+    }
+    .hero-body { position: relative; z-index: 2; padding-bottom: 5.5rem; width: 100%; }
+    .hero-pill {
+      display: inline-flex; align-items: center; gap: .6rem;
+      background: rgba(232,168,0,.18); border: 1px solid rgba(232,168,0,.4);
+      border-radius: 20px; padding: .35rem 1rem; margin-bottom: 1.5rem;
+    }
+    .hero-pill-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); }
+    .hero-pill-txt { font-size: .67rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--yellow); }
+    .hero-h1 { font-family: var(--fd); font-size: clamp(4rem, 11vw, 10rem); line-height: .91; letter-spacing: .01em; color: var(--white); margin-bottom: 1.75rem; }
+    .hero-h1 i { color: var(--yellow); font-style: normal; display: block; }
+    .hero-sub { font-size: 1.05rem; color: rgba(255,255,255,.78); max-width: 420px; line-height: 1.65; margin-bottom: 2.25rem; }
+    .hero-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+    .hero-scroll { position: absolute; right: 2.5rem; bottom: 2.5rem; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: .5rem; }
+    .hero-scroll-line { width: 1px; height: 44px; background: linear-gradient(to bottom, rgba(255,255,255,.5), transparent); animation: hs 2s ease-in-out infinite; }
+    .hero-scroll-txt { font-size: .6rem; letter-spacing: .18em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+    @keyframes hs { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+    /* ── Ticker ── */
+    .ticker { background: var(--yellow); overflow: hidden; padding: .95rem 0; border-top: 2px solid var(--text); border-bottom: 2px solid var(--text); }
+    .ticker-track { display: flex; white-space: nowrap; animation: tick 28s linear infinite; }
+    .ticker-track:hover { animation-play-state: paused; }
+    .ticker-item { font-family: var(--fd); font-size: 1.1rem; letter-spacing: .05em; color: var(--text); padding: 0 1.5rem; }
+    .ticker-item::after { content: ' ·'; opacity: .45; }
+    @keyframes tick { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+    /* ── Concept split ── */
+    .concept { display: grid; grid-template-columns: 1fr 1fr; min-height: 680px; }
+    .concept-img { position: relative; overflow: hidden; }
+    .concept-img img { width:100%; height:100%; object-fit:cover; object-position:center top; transition:transform .8s ease; }
+    .concept-img:hover img { transform:scale(1.04); }
+    .concept-stamp {
+      position: absolute; top: 2rem; left: 2rem;
+      background: var(--white); padding: .55rem 1rem; border-radius: var(--r);
+      font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    }
+    .concept-txt { padding: 5rem 4rem; background: var(--white); display: flex; flex-direction: column; justify-content: center; }
+    .eyebrow { font-size: .67rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--red); margin-bottom: .75rem; }
+    .h2-big { font-family: var(--fd); font-size: clamp(3rem, 5vw, 4.5rem); line-height: .93; letter-spacing: .02em; color: var(--text); margin-bottom: 1.75rem; }
+    .h2-big em { color: var(--red); font-style: normal; }
+    .body-copy { font-size: 1.05rem; color: var(--muted); line-height: 1.75; margin-bottom: 2rem; max-width: 420px; }
+    .pillars { display: flex; flex-direction: column; gap: .9rem; margin-bottom: 2.5rem; }
+    .pillar { display: flex; align-items: center; gap: 1rem; padding: .9rem 1.25rem; border: 1px solid var(--border); border-radius: var(--r); background: var(--bg); }
+    .pillar-icon { width: 40px; height: 40px; border-radius: var(--r); background: var(--yellow); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .pillar-icon svg { width: 19px; height: 19px; }
+    .pillar strong { font-size: .87rem; font-weight: 700; display: block; margin-bottom: .1rem; }
+    .pillar span { font-size: .78rem; color: var(--muted); }
+
+    /* ── Stats ── */
+    .stats { background: var(--dark); padding: 4rem 0; }
+    .stats-row { display: grid; grid-template-columns: repeat(4,1fr); }
+    .stat { text-align: center; padding: 1.5rem 1rem; border-right: 1px solid rgba(255,255,255,.08); }
+    .stat:last-child { border-right: none; }
+    .stat-n { font-family: var(--fd); font-size: clamp(3rem,5vw,4.5rem); color: var(--yellow); line-height: 1; margin-bottom: .4rem; }
+    .stat-l { font-size: .72rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.4); }
+
+    /* ── Products ── */
+    .products { padding: 6rem 0; }
+    .prod-tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 2.5rem; }
+    .prod-tab { background: none; border: none; cursor: pointer; padding: .9rem 2rem; font-family: var(--fb); font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color .2s, border-color .2s; }
+    .prod-tab.on { color: var(--text); border-bottom-color: var(--yellow); }
+    .prod-tab:hover:not(.on) { color: var(--text); }
+    .prod-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.25rem; }
+    .prod-card { border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; background: var(--white); cursor: pointer; transition: transform .2s, box-shadow .2s; }
+    .prod-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.09); }
+    .prod-img { aspect-ratio: 3/4; overflow: hidden; background: var(--bg); }
+    .prod-img img { width:100%; height:100%; object-fit:cover; transition:transform .5s ease; }
+    .prod-card:hover .prod-img img { transform:scale(1.06); }
+    .prod-info { padding: 1rem 1.1rem 1.25rem; }
+    .prod-cat { font-size: .62rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--red); margin-bottom: .35rem; }
+    .prod-name { font-size: .93rem; font-weight: 600; color: var(--text); margin-bottom: .6rem; line-height: 1.3; }
+    .prod-foot { display: flex; align-items: center; justify-content: space-between; }
+    .prod-price { font-family: var(--fd); font-size: 1.3rem; letter-spacing: .04em; }
+    .prod-vol { font-size: .68rem; color: var(--muted); }
+    .prod-plus { width: 32px; height: 32px; border-radius: 50%; background: var(--yellow); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform .15s; flex-shrink: 0; }
+    .prod-plus:hover { transform: scale(1.12); }
+    .prod-plus svg { width: 14px; height: 14px; }
+
+    /* ── Promo banner ── */
+    .promo { position: relative; height: 520px; display: flex; align-items: center; overflow: hidden; }
+    .promo-bg { position: absolute; inset: 0; background: url('Pics/IMG_7568.jpg') center / cover no-repeat; filter: brightness(.5); }
+    .promo-veil { position: absolute; inset: 0; background: linear-gradient(to right, rgba(17,16,16,.85) 0%, rgba(17,16,16,.2) 60%, transparent 85%); }
+    .promo-body { position: relative; z-index: 2; }
+    .promo-badge { display: inline-block; background: var(--yellow); color: var(--text); font-size: .68rem; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; padding: .4rem 1rem; border-radius: 2px; margin-bottom: 1.25rem; }
+    .promo-h2 { font-family: var(--fd); font-size: clamp(3.5rem, 9vw, 7.5rem); line-height: .88; color: var(--white); margin-bottom: 1.25rem; }
+    .promo-h2 em { color: var(--yellow); font-style: normal; }
+    .promo-sub { font-size: 1.05rem; color: rgba(255,255,255,.72); max-width: 380px; margin-bottom: 2rem; line-height: 1.6; }
+
+    /* ── Events ── */
+    .events { padding: 6rem 0; background: var(--white); }
+    .events-grid { display: grid; grid-template-columns: 1.4fr 1fr; grid-template-rows: 1fr 1fr; gap: 1rem; height: 680px; margin-top: 2rem; }
+    .ev-card { position: relative; overflow: hidden; border-radius: var(--r); cursor: pointer; }
+    .ev-card-main { grid-row: span 2; }
+    .ev-card img { width:100%; height:100%; object-fit:cover; filter:brightness(.5); transition:transform .6s ease, filter .4s ease; }
+    .ev-card:hover img { transform:scale(1.04); filter:brightness(.62); }
+    .ev-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(17,16,16,.9) 0%, transparent 55%); display: flex; flex-direction: column; justify-content: flex-end; padding: 1.75rem 2rem; }
+    .ev-tag { display: inline-flex; background: rgba(232,168,0,.2); border: 1px solid rgba(232,168,0,.4); color: var(--yellow); font-size: .6rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; padding: .28rem .75rem; border-radius: 20px; margin-bottom: .6rem; width: fit-content; }
+    .ev-date { font-size: .67rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--yellow); margin-bottom: .45rem; }
+    .ev-title { font-family: var(--fd); font-size: 1.9rem; color: var(--white); line-height: 1.05; }
+    .ev-card:not(.ev-card-main) .ev-title { font-size: 1.3rem; }
+
+    /* ── Gallery strip ── */
+    .gallery { overflow: hidden; }
+    .gallery-row { display: flex; height: 370px; }
+    .gallery-cell { flex: 1; overflow: hidden; position: relative; cursor: pointer; }
+    .gallery-cell:first-child { flex: 1.6; }
+    .gallery-cell img { width:100%; height:100%; object-fit:cover; filter:brightness(.65) saturate(.8); transition:transform .6s ease, filter .45s ease; }
+    .gallery-cell:hover img { transform:scale(1.06); filter:brightness(.88) saturate(1); }
+    .gallery-cell-lbl { position: absolute; bottom: 1.25rem; left: 1.5rem; font-size: .64rem; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--white); opacity: 0; transform: translateY(8px); transition: opacity .3s, transform .3s; }
+    .gallery-cell:hover .gallery-cell-lbl { opacity: 1; transform: translateY(0); }
+    @media(max-width:768px){ .gallery-row { height: 240px; } .gallery-cell:nth-child(n+4){display:none;} }
+
+    /* ── Tap CTA ── */
+    .tap { background: var(--red); padding: 5rem 0; position: relative; overflow: hidden; }
+    .tap::before { content:''; position:absolute; top:-60%; right:-5%; width:70vh; height:70vh; border-radius:50%; background:rgba(255,255,255,.04); pointer-events:none; }
+    .tap-inner { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 3rem; }
+    .tap-lbl { font-size: .67rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.55); margin-bottom: .75rem; }
+    .tap-h2 { font-family: var(--fd); font-size: clamp(2.5rem,5vw,4.5rem); color: var(--white); line-height: .93; }
+    .tap-h2 em { color: var(--yellow); font-style: normal; }
+    .tap-sub { font-size: 1rem; color: rgba(255,255,255,.68); margin-top: 1rem; max-width: 380px; line-height: 1.7; }
+    .tap-actions { display: flex; gap: .75rem; flex-shrink: 0; }
+
+    /* ── Find us ── */
+    .findus { padding: 6rem 0; }
+    .findus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+    .findus-visual { position: relative; border-radius: var(--r); overflow: hidden; aspect-ratio: 4/3; }
+    .findus-visual img { width:100%; height:100%; object-fit:cover; }
+    .findus-pin { position: absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:54px; height:54px; background:var(--white); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,.2); }
+    .findus-pin svg { width: 24px; height: 24px; color: var(--red); }
+    .store-search { display: flex; border: 2px solid var(--text); border-radius: var(--r); overflow: hidden; margin-bottom: 1.5rem; }
+    .store-search input { flex:1; background:none; border:none; outline:none; padding:.9rem 1.25rem; font-family:var(--fb); font-size:.93rem; color:var(--text); }
+    .store-search input::placeholder { color:var(--muted); }
+    .store-search button { background:var(--text); border:none; cursor:pointer; padding:0 1.5rem; color:var(--white); transition:background .2s; }
+    .store-search button:hover { background:var(--red); }
+    .store-search button svg { width:18px; height:18px; display:block; }
+    .stores { display:flex; flex-direction:column; gap:.5rem; }
+    .store-row { display:flex; align-items:center; gap:1.25rem; padding:1rem 1.25rem; border:1px solid var(--border); border-radius:var(--r); cursor:pointer; transition:border-color .2s, background .2s; }
+    .store-row:hover { border-color:var(--yellow); background:var(--white); }
+    .store-dot { width:8px; height:8px; border-radius:50%; background:var(--red); flex-shrink:0; }
+    .store-name { font-size:.9rem; font-weight:600; }
+    .store-addr { font-size:.77rem; color:var(--muted); }
+    .store-arr { margin-left:auto; color:var(--muted); }
+    .store-arr svg { width:16px; height:16px; }
+
+    /* ── Newsletter ── */
+    .nl { background: var(--dark); padding: 5rem 0; }
+    .nl-inner { display:flex; align-items:center; gap:4rem; justify-content:space-between; }
+    .nl-lbl { font-size:.67rem; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--yellow); margin-bottom:.75rem; }
+    .nl-h2 { font-family:var(--fd); font-size:clamp(2rem,4vw,3rem); color:var(--white); line-height:1; }
+    .nl-form { display:flex; border:2px solid rgba(255,255,255,.2); border-radius:var(--r); overflow:hidden; flex-shrink:0; width:440px; }
+    .nl-form input { flex:1; background:none; border:none; outline:none; padding:.9rem 1.25rem; color:var(--white); font-family:var(--fb); font-size:.9rem; }
+    .nl-form input::placeholder { color:rgba(255,255,255,.3); }
+    .nl-form button { background:var(--yellow); border:none; cursor:pointer; padding:0 1.75rem; color:var(--text); font-family:var(--fb); font-size:.78rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; transition:background .2s; }
+    .nl-form button:hover { background:#f5c800; }
+
+    /* ── Footer ── */
+    .footer { background:#0A0908; padding:4rem 0 2rem; }
+    .footer-top { display:grid; grid-template-columns:1.6fr repeat(3,1fr); gap:3rem; margin-bottom:3rem; }
+    .f-logo { font-family:var(--fd); font-size:2rem; letter-spacing:.05em; color:var(--white); margin-bottom:.75rem; }
+    .f-logo b { color:var(--yellow); font-weight:400; }
+    .footer-brand p { font-size:.875rem; color:rgba(255,255,255,.38); line-height:1.7; max-width:260px; }
+    .f-socials { display:flex; gap:.5rem; margin-top:1.5rem; }
+    .f-soc { width:36px; height:36px; border:1px solid rgba(255,255,255,.1); border-radius:var(--r); display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.38); transition:color .2s, border-color .2s; }
+    .f-soc:hover { color:var(--yellow); border-color:var(--yellow); }
+    .f-soc svg { width:16px; height:16px; }
+    .f-col-title { font-size:.64rem; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.28); margin-bottom:1.25rem; }
+    .f-links { display:flex; flex-direction:column; gap:.6rem; }
+    .f-links a { font-size:.875rem; color:rgba(255,255,255,.45); transition:color .2s; }
+    .f-links a:hover { color:var(--white); }
+    .footer-bottom { padding-top:2rem; border-top:1px solid rgba(255,255,255,.06); display:flex; align-items:center; justify-content:space-between; }
+    .footer-copy { font-size:.74rem; color:rgba(255,255,255,.22); }
+    .footer-legal { display:flex; gap:1.5rem; }
+    .footer-legal a { font-size:.74rem; color:rgba(255,255,255,.22); transition:color .2s; }
+    .footer-legal a:hover { color:rgba(255,255,255,.55); }
+
+    /* ── Responsive ── */
+    @media(max-width:1024px){
+      .prod-grid { grid-template-columns:repeat(2,1fr); }
+      .footer-top { grid-template-columns:1fr 1fr; }
+    }
+    @media(max-width:900px){
+      .concept { grid-template-columns:1fr; }
+      .concept-img { height:55vw; }
+      .events-grid { grid-template-columns:1fr; grid-template-rows:60vh auto auto; height:auto; }
+      .ev-card-main { grid-row:span 1; }
+      .findus-grid { grid-template-columns:1fr; }
+      .tap-inner { flex-direction:column; }
+      .stats-row { grid-template-columns:repeat(2,1fr); }
+      .stat { border-right:none; border-bottom:1px solid rgba(255,255,255,.08); }
+      .stat:nth-child(odd) { border-right:1px solid rgba(255,255,255,.08); }
+      .stat:nth-last-child(-n+2) { border-bottom:none; }
+    }
+    @media(max-width:768px){
+      .nav-links { display:none; }
+      .nl-inner { flex-direction:column; }
+      .nl-form { width:100%; }
+      .footer-top { grid-template-columns:1fr; }
+    }
+    @media(max-width:640px){
+      .prod-grid { grid-template-columns:repeat(2,1fr); }
+      .hero-h1 { font-size:clamp(3rem,14vw,6rem); }
+      .promo { height:420px; }
+      .footer-bottom { flex-direction:column; gap:1rem; }
+      .footer-legal { flex-wrap:wrap; justify-content:center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <div class="wrap">
+    <div class="nav-inner">
+      <a href="#" class="logo">V<b>&</b>B</a>
+      <ul class="nav-links">
+        <li><a href="#concept">Le Concept</a></li>
+        <li><a href="#produits">Sélections</a></li>
+        <li><a href="#evenements">Événements</a></li>
+        <li><a href="#trouver">Nos Bars</a></li>
+        <li><a href="#tireuse">Tireuse</a></li>
+      </ul>
+      <div class="nav-cta">
+        <a href="#trouver" class="btn btn-ghost" id="nbtn" style="font-size:.72rem;">Trouver un bar</a>
+        <a href="#" class="btn btn-yellow" style="font-size:.72rem;">E-shop</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-veil"></div>
+  <div class="wrap hero-body">
+    <div class="hero-pill">
+      <div class="hero-pill-dot"></div>
+      <span class="hero-pill-txt">Cave &amp; Bar · Depuis 1994 · +300 adresses</span>
+    </div>
+    <h1 class="hero-h1">
+      Partageur<br>
+      <i>de bons</i><br>
+      moments.
+    </h1>
+    <p class="hero-sub">Bières artisanales, vins de caractère et spiritueux du monde entier. Sélectionnés par des passionnés, sur place ou à emporter.</p>
+    <div class="hero-actions">
+      <a href="#produits" class="btn btn-yellow">Découvrir la sélection</a>
+      <a href="#concept" class="btn btn-ghost">Notre concept</a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <div class="hero-scroll-line"></div>
+    <span class="hero-scroll-txt">Défiler</span>
+  </div>
+</header>
+
+<!-- TICKER -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <span class="ticker-item">Cave à Bières</span><span class="ticker-item">Cave à Vins</span><span class="ticker-item">Spiritueux Premium</span><span class="ticker-item">Location de Tireuse</span><span class="ticker-item">Click &amp; Collect</span><span class="ticker-item">Sans Alcool</span><span class="ticker-item">Dégustations</span><span class="ticker-item">Événements</span>
+    <span class="ticker-item">Cave à Bières</span><span class="ticker-item">Cave à Vins</span><span class="ticker-item">Spiritueux Premium</span><span class="ticker-item">Location de Tireuse</span><span class="ticker-item">Click &amp; Collect</span><span class="ticker-item">Sans Alcool</span><span class="ticker-item">Dégustations</span><span class="ticker-item">Événements</span>
+  </div>
+</div>
+
+<!-- CONCEPT -->
+<section id="concept" class="concept">
+  <div class="concept-img">
+    <img src="Pics/IMG_7570.jpg" alt="Conseil vins et bières — V and B" loading="lazy" />
+    <div class="concept-stamp">Cave &amp; Bar depuis 1994</div>
+  </div>
+  <div class="concept-txt">
+    <p class="eyebrow">Notre univers</p>
+    <h2 class="h2-big">Mi-cave,<br>mi-bar.<br><em>100% passion.</em></h2>
+    <p class="body-copy">V and B, c'est un concept unique en France : vous entrez dans une cave à vins et bières, et vous pouvez aussi y boire un verre sur place. Nos sommeliers passionnés vous guident dans une sélection de plus de 2 000 références.</p>
+    <div class="pillars">
+      <div class="pillar">
+        <div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+        <div><strong>Conseil expert, toujours</strong><span>Nos sommeliers vous orientent vers la bouteille parfaite</span></div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div><strong>Ouvert 7j/7, horaires élargis</strong><span>Toujours là quand vous avez envie de partager</span></div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+        <div><strong>Communauté vivante</strong><span>Events, dégustations et soirées toute l'année</span></div>
+      </div>
+    </div>
+    <a href="#" class="btn btn-dark">En savoir plus</a>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="wrap">
+    <div class="stats-row">
+      <div class="stat"><div class="stat-n">300+</div><div class="stat-l">Bars en France</div></div>
+      <div class="stat"><div class="stat-n">1994</div><div class="stat-l">Année de création</div></div>
+      <div class="stat"><div class="stat-n">2000+</div><div class="stat-l">Références en rayon</div></div>
+      <div class="stat"><div class="stat-n">100%</div><div class="stat-l">Passion &amp; convivialité</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUCTS -->
+<section id="produits" class="products">
+  <div class="wrap">
+    <p class="eyebrow">Notre sélection</p>
+    <h2 class="h2-big" style="margin-bottom:2.5rem;">Bières, vins &amp; <em>spiritueux</em></h2>
+    <div class="prod-tabs" role="tablist">
+      <button class="prod-tab on" role="tab" aria-selected="true"  id="t-b" aria-controls="p-b">Bières</button>
+      <button class="prod-tab"    role="tab" aria-selected="false" id="t-v" aria-controls="p-v">Vins</button>
+      <button class="prod-tab"    role="tab" aria-selected="false" id="t-s" aria-controls="p-s">Spiritueux</button>
+      <button class="prod-tab"    role="tab" aria-selected="false" id="t-n" aria-controls="p-n">Sans alcool</button>
+    </div>
+
+    <div id="p-b" role="tabpanel">
+      <div class="prod-grid">
+        <article class="prod-card">
+          <div class="prod-img"><img src="Pics/IMG_7569.jpg" alt="Craft beer V and B" loading="lazy" /></div>
+          <div class="prod-info"><div class="prod-cat">IPA · Artisanale</div><div class="prod-name">Sélection Craft du Moment</div><div class="prod-foot"><span class="prod-price">6,50€</span><span class="prod-vol">33 cl · 6.2%</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+        </article>
+        <article class="prod-card">
+          <div class="prod-img"><img src="Pics/IMG_7568.jpg" alt="Foire à la Bière V and B" loading="lazy" /></div>
+          <div class="prod-info"><div class="prod-cat">Promo · −33%</div><div class="prod-name">Brasserie d'Achouffe — Foire</div><div class="prod-foot"><span class="prod-price">3,90€</span><span class="prod-vol">33 cl · 8%</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+        </article>
+        <article class="prod-card">
+          <div class="prod-img"><img src="Pics/IMG_7575.jpg" alt="Cave bières V and B" loading="lazy" /></div>
+          <div class="prod-info"><div class="prod-cat">Cave · 2000+ références</div><div class="prod-name">Rayon Bières — V and B</div><div class="prod-foot"><span class="prod-price">À partir de 2€</span><span class="prod-vol">33–75 cl</span><button class="prod-plus" aria-label="Voir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div></div>
+        </article>
+        <article class="prod-card">
+          <div class="prod-img"><img src="Pics/IMG_7566.jpg" alt="Bière et tapas terrasse" loading="lazy" /></div>
+          <div class="prod-info"><div class="prod-cat">Terrasse · Bar</div><div class="prod-name">Bière &amp; Planches sur place</div><div class="prod-foot"><span class="prod-price">À partir de 4€</span><span class="prod-vol">25–50 cl</span><button class="prod-plus" aria-label="Voir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div></div>
+        </article>
+      </div>
+    </div>
+
+    <div id="p-v" role="tabpanel">
+      <div class="prod-grid">
+        <article class="prod-card">
+          <div class="prod-img"><img src="Pics/IMG_7574.jpg" alt="Champagne Deville V and B" loading="lazy" /></div>
+          <div class="prod-info"><div class="prod-cat">Champagne · Prestige</div><div class="prod-name">Champagne Deville Brut NV</div><div class="prod-foot"><span class="prod-price">44,90€</span><span class="prod-vol">75 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+        </article>
+        <article class="prod-card">
+          <div class="prod-img"><img src="Pics/IMG_7570.jpg" alt="Palooza Rosé" loading="lazy" /></div>
+          <div class="prod-info"><div class="prod-cat">Rosé · Languedoc</div><div class="prod-name">Palooza Création Rosé</div><div class="prod-foot"><span class="prod-price">9,90€</span><span class="prod-vol">75 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+        </article>
+        <article class="prod-card">
+          <div class="prod-img"><img src="Pics/IMG_7574.jpg" alt="Vins Bourgogne" loading="lazy" style="object-position:right center;" /></div>
+          <div class="prod-info"><div class="prod-cat">Blanc · Rhône</div><div class="prod-name">M. Chapoutier Viognier 2024</div><div class="prod-foot"><span class="prod-price">18,50€</span><span class="prod-vol">75 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+        </article>
+        <article class="prod-card">
+          <div class="prod-img"><img src="Pics/IMG_7577.jpg" alt="Vins sélection V and B" loading="lazy" /></div>
+          <div class="prod-info"><div class="prod-cat">Rouge · Bourgogne</div><div class="prod-name">Bourgogne Pinot Noir 2022</div><div class="prod-foot"><span class="prod-price">23,00€</span><span class="prod-vol">75 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+        </article>
+      </div>
+    </div>
+
+    <div id="p-s" role="tabpanel">
+      <div class="prod-grid">
+        <article class="prod-card">
+          <div class="prod-img"><img src="Pics/IMG_7572.jpg" alt="Yamazaki 12 ans" loading="lazy" style="object-position:left center;" /></div>
+          <div class="prod-info"><div class="prod-cat">Whisky · Single Malt Japon</div><div class="prod-name">Yamazaki 12 ans</div><div class="prod-foot"><span class="prod-price">89,90€</span><span class="prod-vol">70 cl · 43%</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+        </article>
+        <article class="prod-card">
+          <div class="prod-img"><img src="Pics/IMG_7572.jpg" alt="Gin V and B" loading="lazy" style="object-position:right top;" /></div>
+          <div class="prod-info"><div class="prod-cat">Gin · Premium</div><div class="prod-name">Sélection Gin &amp; Tonic</div><div class="prod-foot"><span class="prod-price">À partir de 29€</span><span class="prod-vol">70 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+        </article>
+        <article class="prod-card">
+          <div class="prod-img"><img src="Pics/IMG_7572.jpg" alt="Vodka sélection" loading="lazy" style="object-position:right center;" /></div>
+          <div class="prod-info"><div class="prod-cat">Vodka · Import</div><div class="prod-name">Vodkas du Monde</div><div class="prod-foot"><span class="prod-price">À partir de 22€</span><span class="prod-vol">70 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+        </article>
+        <article class="prod-card">
+          <div class="prod-img"><img src="Pics/IMG_7572.jpg" alt="Liqueurs V and B" loading="lazy" style="object-position:right bottom;" /></div>
+          <div class="prod-info"><div class="prod-cat">Liqueur · Apéritifs</div><div class="prod-name">Amers &amp; Liqueurs Maison</div><div class="prod-foot"><span class="prod-price">À partir de 18€</span><span class="prod-vol">70 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+        </article>
+      </div>
+    </div>
+
+    <div id="p-n" role="tabpanel">
+      <div class="prod-grid">
+        <article class="prod-card">
+          <div class="prod-img"><img src="Pics/IMG_7571.jpg" alt="Grum sans alcool" loading="lazy" /></div>
+          <div class="prod-info"><div class="prod-cat">Pétillant · Sans alcool</div><div class="prod-name">Grum Fruits Rouges</div><div class="prod-foot"><span class="prod-price">4,50€</span><span class="prod-vol">33 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+        </article>
+        <article class="prod-card">
+          <div class="prod-img"><img src="Pics/IMG_7576.jpg" alt="Jomo Grenadine" loading="lazy" /></div>
+          <div class="prod-info"><div class="prod-cat">Kombucha · Frais</div><div class="prod-name">Jomo Grenadine Bio</div><div class="prod-foot"><span class="prod-price">4,00€</span><span class="prod-vol">35 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+        </article>
+        <article class="prod-card">
+          <div class="prod-img"><img src="Pics/IMG_7578.jpg" alt="Jomo Menthe Citron" loading="lazy" /></div>
+          <div class="prod-info"><div class="prod-cat">Pur Jus · Healthy</div><div class="prod-name">Jomo Menthe Citron</div><div class="prod-foot"><span class="prod-price">3,70€</span><span class="prod-vol">35 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+        </article>
+        <article class="prod-card">
+          <div class="prod-img"><img src="Pics/IMG_7576.jpg" alt="Pop Mate artisanal" loading="lazy" style="object-position:center bottom;" /></div>
+          <div class="prod-info"><div class="prod-cat">Pétillant · Artisanal</div><div class="prod-name">Pop Mate Citron</div><div class="prod-foot"><span class="prod-price">5,50€</span><span class="prod-vol">33 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+        </article>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:2.5rem;"><a href="#" class="btn btn-outline">Voir toute la sélection</a></div>
+  </div>
+</section>
+
+<!-- PROMO BANNER -->
+<div class="promo">
+  <div class="promo-bg"></div>
+  <div class="promo-veil"></div>
+  <div class="wrap promo-body">
+    <div class="promo-badge">Offre du moment</div>
+    <h2 class="promo-h2">FOIRE<br>À LA <em>BIÈRE</em></h2>
+    <p class="promo-sub">Plus de 200 bières artisanales sélectionnées. Jusqu'à -33% en magasin et sur l'e-shop.</p>
+    <a href="#" class="btn btn-yellow">Profiter de l'offre</a>
+  </div>
+</div>
+
+<!-- EVENTS -->
+<section id="evenements" class="events">
+  <div class="wrap">
+    <p class="eyebrow">Agenda</p>
+    <h2 class="h2-big">Événements &amp; <em>soirées</em></h2>
+    <div class="events-grid">
+      <article class="ev-card ev-card-main">
+        <img src="Pics/IMG_7567.jpg" alt="Soirée Saint-Patrick V and B" loading="lazy" />
+        <div class="ev-overlay">
+          <div class="ev-tag">À ne pas manquer</div>
+          <div class="ev-date">Vendredi 27 Juin 2025</div>
+          <h3 class="ev-title">Soirée Saint-Patrick — Bar comble, ambiance garantie</h3>
+        </div>
+      </article>
+      <article class="ev-card">
+        <img src="Pics/IMG_7573.jpg" alt="Agenda équipe V and B" loading="lazy" />
+        <div class="ev-overlay">
+          <div class="ev-date">Tous les mois</div>
+          <h3 class="ev-title">Soirées &amp; Agenda Mensuel</h3>
+        </div>
+      </article>
+      <article class="ev-card">
+        <img src="Pics/IMG_7580.jpg" alt="Team event V and B" loading="lazy" />
+        <div class="ev-overlay">
+          <div class="ev-date">19 Juillet 2025</div>
+          <h3 class="ev-title">Soirée à Thème — Team Event</h3>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<div class="gallery" aria-label="Ambiance V and B">
+  <div class="gallery-row">
+    <div class="gallery-cell"><img src="Pics/IMG_7565.jpg" alt="Soirée V and B" loading="lazy" /><div class="gallery-cell-lbl">Soirées</div></div>
+    <div class="gallery-cell"><img src="Pics/IMG_7566.jpg" alt="Terrasse V and B" loading="lazy" /><div class="gallery-cell-lbl">Terrasse</div></div>
+    <div class="gallery-cell"><img src="Pics/IMG_7572.jpg" alt="Cave spiritueux" loading="lazy" /><div class="gallery-cell-lbl">Cave</div></div>
+    <div class="gallery-cell"><img src="Pics/IMG_7574.jpg" alt="Vins V and B" loading="lazy" /><div class="gallery-cell-lbl">Vins</div></div>
+    <div class="gallery-cell"><img src="Pics/IMG_7575.jpg" alt="Bières V and B" loading="lazy" /><div class="gallery-cell-lbl">Bières</div></div>
+  </div>
+</div>
+
+<!-- TAP CTA -->
+<div id="tireuse" class="tap">
+  <div class="wrap">
+    <div class="tap-inner">
+      <div>
+        <div class="tap-lbl">Pour vos événements</div>
+        <h2 class="tap-h2">Une tireuse<br>pour votre <em>fête ?</em></h2>
+        <p class="tap-sub">Location de tireuse à bière professionnelle pour mariages, anniversaires et événements d'entreprise. Livraison, installation et formation incluses.</p>
+      </div>
+      <div class="tap-actions">
+        <a href="#" class="btn btn-yellow">Réserver maintenant</a>
+        <a href="#" class="btn btn-ghost">En savoir plus</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FIND US -->
+<section id="trouver" class="findus">
+  <div class="wrap">
+    <div class="findus-grid">
+      <div>
+        <p class="eyebrow">Près de chez vous</p>
+        <h2 class="h2-big">Trouver<br>un <em>V and B</em></h2>
+        <p style="color:var(--muted);font-size:1rem;line-height:1.7;margin-bottom:2rem;">Plus de 300 bars-caves en France. Conseils personnalisés, événements locaux et une sélection renouvelée chaque semaine.</p>
+        <div class="store-search">
+          <input type="text" placeholder="Ville ou code postal…" autocomplete="postal-code" />
+          <button type="button" aria-label="Rechercher"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></button>
+        </div>
+        <div class="stores">
+          <div class="store-row"><div class="store-dot"></div><div><div class="store-name">V and B Paris 11e</div><div class="store-addr">47 Rue de la Roquette, 75011 Paris</div></div><div class="store-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
+          <div class="store-row"><div class="store-dot"></div><div><div class="store-name">V and B Lyon Confluence</div><div class="store-addr">12 Cours Charlemagne, 69002 Lyon</div></div><div class="store-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
+          <div class="store-row"><div class="store-dot"></div><div><div class="store-name">V and B Bordeaux Chartrons</div><div class="store-addr">58 Cours du Médoc, 33300 Bordeaux</div></div><div class="store-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
+        </div>
+      </div>
+      <div class="findus-visual">
+        <img src="Pics/IMG_7565.jpg" alt="Ambiance V and B" loading="lazy" />
+        <div class="findus-pin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<div class="nl">
+  <div class="wrap">
+    <div class="nl-inner">
+      <div>
+        <div class="nl-lbl">Restez connecté</div>
+        <h2 class="nl-h2">Actu, promos<br>&amp; événements</h2>
+      </div>
+      <form class="nl-form" onsubmit="return false;">
+        <input type="email" placeholder="votre@email.com" autocomplete="email" required />
+        <button type="submit">S'inscrire</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="f-logo">V<b>&</b>B</div>
+        <p>Cave &amp; Bar — Partageur de bons moments depuis 1994. Plus de 300 établissements à travers toute la France.</p>
+        <nav class="f-socials">
+          <a href="https://www.instagram.com/vandb_officiel/" class="f-soc" aria-label="Instagram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          <a href="https://www.facebook.com/vandb" class="f-soc" aria-label="Facebook" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
+          <a href="https://www.tiktok.com/@vandb" class="f-soc" aria-label="TikTok" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V9.43a8.16 8.16 0 004.77 1.52V7.5a4.85 4.85 0 01-1.01-.81z"/></svg></a>
+        </nav>
+      </div>
+      <div><div class="f-col-title">Explorer</div><ul class="f-links"><li><a href="#concept">Notre concept</a></li><li><a href="#produits">Bières &amp; Vins</a></li><li><a href="#evenements">Événements</a></li><li><a href="#">E-shop</a></li></ul></div>
+      <div><div class="f-col-title">Services</div><ul class="f-links"><li><a href="#tireuse">Location tireuse</a></li><li><a href="#">Bouteille personnalisée</a></li><li><a href="#">Click &amp; Collect</a></li><li><a href="#">Séminaires</a></li></ul></div>
+      <div><div class="f-col-title">Infos</div><ul class="f-links"><li><a href="#">Qui sommes-nous ?</a></li><li><a href="#">Franchise V and B</a></li><li><a href="#">Blog</a></li><li><a href="#">Recrutement</a></li><li><a href="#">Contact</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2025 V and B — Tous droits réservés.</p>
+      <nav class="footer-legal"><a href="#">Mentions légales</a><a href="#">CGV</a><a href="#">Politique de confidentialité</a><a href="#">Cookies</a></nav>
+    </div>
+  </div>
+</footer>
+
+<script>
+  /* Nav transparent → solid */
+  const nav = document.getElementById('nav');
+  const nbtn = document.getElementById('nbtn');
+  function syncNav() {
+    const solid = window.scrollY > 80;
+    nav.classList.toggle('solid', solid);
+    if (solid) { nbtn.style.borderColor = 'rgba(26,18,9,.2)'; nbtn.style.color = 'var(--text)'; }
+    else        { nbtn.style.borderColor = 'rgba(255,255,255,.55)'; nbtn.style.color = 'var(--white)'; }
+  }
+  window.addEventListener('scroll', syncNav, { passive: true });
+  syncNav();
+
+  /* Product tabs */
+  const tabs   = document.querySelectorAll('.prod-tab');
+  const panels = document.querySelectorAll('[role="tabpanel"]');
+  panels.forEach((p, i) => { if (i > 0) p.hidden = true; });
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabs.forEach(b => { b.classList.remove('on'); b.setAttribute('aria-selected','false'); });
+      panels.forEach(p => { p.hidden = true; });
+      btn.classList.add('on');
+      btn.setAttribute('aria-selected','true');
+      const panel = document.getElementById(btn.getAttribute('aria-controls'));
+      if (panel) panel.hidden = false;
+    });
+  });
+
+  /* Smooth scroll */
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const t = document.querySelector(a.getAttribute('href'));
+      if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Réserver — V and B</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400;1,600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #F8F4EE;
+      --dark:    #111010;
+      --white:   #FFFFFF;
+      --yellow:  #E8A800;
+      --red:     #C5142B;
+      --text:    #1A1209;
+      --muted:   #7A6B58;
+      --border:  rgba(26,18,9,0.1);
+      --fd: 'Bebas Neue', sans-serif;
+      --fs: 'Playfair Display', Georgia, serif;
+      --fb: 'Inter', system-ui, sans-serif;
+      --r: 4px;
+    }
+    body {
+      background: var(--dark); color: var(--white); font-family: var(--fb);
+      min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+      padding: 2.5rem 1.25rem; -webkit-font-smoothing: antialiased;
+    }
+    .card {
+      width: 100%; max-width: 480px; background: var(--bg); color: var(--text);
+      border-radius: 10px; padding: 2.75rem 2.25rem; box-shadow: 0 30px 80px rgba(0,0,0,.5);
+    }
+    .brand { font-family: var(--fd); font-size: 1.9rem; letter-spacing: .04em; margin-bottom: .35rem; }
+    .brand b { color: var(--red); font-weight: 400; }
+    h1 { font-family: var(--fs); font-style: italic; font-weight: 600; font-size: 1.5rem; margin-bottom: 1.75rem; color: var(--muted); }
+    label { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .4rem; }
+    .field { margin-bottom: 1.15rem; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    input, select, textarea {
+      width: 100%; padding: .75rem .9rem; border: 2px solid var(--border); border-radius: var(--r);
+      font-family: var(--fb); font-size: .92rem; background: var(--white); color: var(--text);
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--yellow); }
+    .avail { font-size: .78rem; margin-top: .4rem; min-height: 1.1em; }
+    .avail.ok { color: #2f7a3f; }
+    .avail.low { color: var(--yellow); font-weight: 700; }
+    .avail.full { color: var(--red); font-weight: 700; }
+    .btn {
+      width: 100%; margin-top: .5rem; display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+      padding: .95rem 2rem; border-radius: var(--r); cursor: pointer; border: none;
+      font-family: var(--fb); font-size: .8rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; background: var(--red); color: var(--white);
+      transition: transform .15s, box-shadow .15s, opacity .15s;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.15); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .error {
+      background: rgba(197,20,43,.1); border: 1px solid rgba(197,20,43,.3); color: var(--red);
+      border-radius: var(--r); padding: .75rem .9rem; font-size: .85rem; margin-bottom: 1.15rem; display: none;
+    }
+    .success { text-align: center; }
+    .success .icon { font-size: 2.5rem; margin-bottom: .5rem; }
+    .success h2 { font-family: var(--fs); font-style: italic; font-size: 1.4rem; margin-bottom: .5rem; }
+    .success p { color: var(--muted); font-size: .92rem; line-height: 1.6; margin-bottom: 1.5rem; }
+    .cal-link {
+      display: inline-flex; align-items: center; gap: .5rem; padding: .8rem 1.6rem; border-radius: var(--r);
+      background: var(--text); color: var(--white); font-size: .78rem; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">V<b>AND</b>B</div>
+
+    <div id="form-view">
+      <h1>Réserver une table</h1>
+      <div id="error-box" class="error"></div>
+      <form id="res-form">
+        <div class="field">
+          <label for="name">Nom</label>
+          <input id="name" type="text" required autocomplete="name" />
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="phone">Téléphone</label>
+            <input id="phone" type="tel" required autocomplete="tel" />
+          </div>
+          <div class="field">
+            <label for="email">Email (optionnel)</label>
+            <input id="email" type="email" autocomplete="email" />
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="date">Date</label>
+            <input id="date" type="date" required />
+          </div>
+          <div class="field">
+            <label for="time">Heure</label>
+            <select id="time" required></select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="party">Nombre de personnes</label>
+          <input id="party" type="number" min="1" max="30" value="2" required />
+          <div id="avail" class="avail"></div>
+        </div>
+        <div class="field">
+          <label for="notes">Notes (optionnel)</label>
+          <textarea id="notes" rows="2"></textarea>
+        </div>
+        <div style="position:absolute; left:-9999px; opacity:0; height:0; overflow:hidden;" aria-hidden="true">
+          <label for="website">Site web</label>
+          <input id="website" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+        <button id="submit-btn" class="btn" type="submit">Confirmer la réservation</button>
+        <p style="font-size:.72rem; color:var(--muted); text-align:center; margin-top:.75rem; line-height:1.5;">
+          Vos informations sont utilisées uniquement pour gérer votre réservation.
+        </p>
+      </form>
+    </div>
+
+    <div id="success-view" class="success hidden">
+      <div class="icon">🥂</div>
+      <h2>Réservation confirmée</h2>
+      <p id="success-detail"></p>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://vfkjiprgawimhmieikyw.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_h5llJUqsAHX_dIo_vaYA6w_MEvGGKfc';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const dateInput = document.getElementById('date');
+    const timeSelect = document.getElementById('time');
+    const partyInput = document.getElementById('party');
+    const availBox = document.getElementById('avail');
+    const errorBox = document.getElementById('error-box');
+    const submitBtn = document.getElementById('submit-btn');
+    const form = document.getElementById('res-form');
+
+    const todayISO = new Date().toISOString().slice(0, 10);
+    dateInput.min = todayISO;
+    dateInput.value = todayISO;
+
+    for (let h = 11; h <= 23; h++) {
+      for (const m of [0, 30]) {
+        if (h === 23 && m === 30) continue;
+        const label = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        const opt = document.createElement('option');
+        opt.value = `${label}:00`;
+        opt.textContent = label;
+        timeSelect.appendChild(opt);
+      }
+    }
+
+    async function refreshAvailability() {
+      const d = dateInput.value;
+      if (!d) return;
+      const { data, error } = await sb.rpc('get_availability', { p_date: d });
+      if (error || !data || !data[0]) {
+        availBox.textContent = '';
+        return;
+      }
+      const { remaining } = data[0];
+      const party = parseInt(partyInput.value || '0', 10);
+      if (remaining <= 0) {
+        availBox.className = 'avail full';
+        availBox.textContent = 'Complet pour cette date';
+      } else if (party > remaining) {
+        availBox.className = 'avail full';
+        availBox.textContent = `Seulement ${remaining} couvert(s) restant(s) pour cette date`;
+      } else if (remaining <= 8) {
+        availBox.className = 'avail low';
+        availBox.textContent = `${remaining} couverts restants pour cette date`;
+      } else {
+        availBox.className = 'avail ok';
+        availBox.textContent = `${remaining} couverts disponibles pour cette date`;
+      }
+    }
+    dateInput.addEventListener('change', refreshAvailability);
+    partyInput.addEventListener('input', refreshAvailability);
+    refreshAvailability();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Honeypot: real visitors never see or fill this field (hidden off-screen).
+      // Bots that auto-fill every input often do — pretend success without inserting anything.
+      if (document.getElementById('website').value.trim()) {
+        document.getElementById('form-view').classList.add('hidden');
+        document.getElementById('success-view').classList.remove('hidden');
+        document.getElementById('success-detail').textContent = 'Réservation enregistrée.';
+        return;
+      }
+
+      errorBox.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Envoi…';
+
+      const payload = {
+        customer_name: document.getElementById('name').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        email: document.getElementById('email').value.trim() || null,
+        party_size: parseInt(partyInput.value, 10),
+        reservation_date: dateInput.value,
+        reservation_time: timeSelect.value,
+        notes: document.getElementById('notes').value.trim() || null
+      };
+
+      const { error } = await sb.from('reservations').insert(payload);
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Confirmer la réservation';
+
+      if (error) {
+        errorBox.textContent = error.message.includes('Complet')
+          ? error.message.replace(/^.*?:/, '').trim()
+          : "Une erreur est survenue, merci de réessayer.";
+        errorBox.style.display = 'block';
+        refreshAvailability();
+        return;
+      }
+
+      document.getElementById('form-view').classList.add('hidden');
+      document.getElementById('success-view').classList.remove('hidden');
+      document.getElementById('success-detail').textContent =
+        `${payload.customer_name}, table pour ${payload.party_size} le ${payload.reservation_date} à ${payload.reservation_time.slice(0, 5)}. Un SMS de confirmation peut vous être envoyé.`;
+    });
+  </script>
+</body>
+</html>

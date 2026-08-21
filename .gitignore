@@ -1,0 +1,6 @@
+# Local Netlify folder
+.netlify
+
+# Local Claude Code settings (contains an operational secret in the
+# permission allowlist history — machine-specific, never commit)
+.claude/settings.local.json
