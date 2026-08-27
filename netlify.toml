@@ -1,0 +1,21 @@
+# Site statique : aucune étape de build, on publie la racine du dépôt telle quelle.
+# Ces réglages sont ici plutôt que dans l'interface Netlify pour qu'ils soient
+# versionnés et qu'un changement se voie dans l'historique du dépôt.
+[build]
+  publish = "."
+
+# Les pages HTML ne doivent jamais être servies depuis le cache du navigateur
+# sans revalidation. Sans cet en-tête, une mise en production reste invisible
+# pendant des heures pour qui a déjà visité le site — c'est exactement ce qui
+# s'est passé après le changement de logo du 27/08.
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Le logo et les photos portent des noms stables et changent rarement :
+# on les laisse en cache une semaine.
+[[headers]]
+  for = "/Pics/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
