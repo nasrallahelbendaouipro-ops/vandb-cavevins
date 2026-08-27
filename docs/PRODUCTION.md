@@ -131,19 +131,25 @@ Déroulé effectif :
    (`1K6aGVJQZOLDwditj-8pAMt15U7XwMeGTx8ToEL7dxCk`), `calendar_sync_error` à
    `null`. Test supprimé de la base ensuite.
 
-**Reste à faire** : `calendar_id` vaut encore `'primary'`, c'est-à-dire l'agenda
-principal de `stmemmie@vandb.fr`. Pour basculer sur l'agenda dédié
-« Réservations V and B » une fois créé :
+5. Agenda dédié « Réservations V and B » créé dans le compte du bar et mis en
+   service le 2026-08-27 :
 
-```sql
-update google_calendar_oauth
-   set calendar_id = '<ID>@group.calendar.google.com'
- where id = 1;
-```
+   ```sql
+   update google_calendar_oauth
+      set calendar_id = 'c_807fc548c1c58883c5b05273c666ced31c0b089dffeaa65e42cd8d20df19928f@group.calendar.google.com'
+    where id = 1;
+   ```
 
-**Attention** : la bascule ne rejoue pas l'historique. Les réservations
-antérieures restent dans l'agenda et le tableur d'origine ; les réservations à
-venir encore valides doivent être recopiées à la main dans le nouvel agenda.
+   Vérifié par une réservation de test : évènement créé dans l'agenda dédié,
+   `calendar_sync_error` à `null`, ligne réservée dans le tableur. Test supprimé
+   ensuite, et `sheet_next_row` remis sur la ligne qu'il avait consommée pour
+   que la prochaine vraie réservation l'écrase.
+
+**Attention** : la bascule ne rejoue pas l'historique. Toute réservation créée
+**avant** le consentement du 2026-08-27 à 09h37 a son évènement dans l'agenda de
+l'ancien compte, et sa ligne dans l'ancien tableur — la changer de `calendar_id`
+ne les déplace pas. Les réservations à venir concernées doivent être recopiées à
+la main dans le nouvel agenda.
 
 ### C2. Canva
 
