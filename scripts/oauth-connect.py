@@ -53,6 +53,9 @@ def main() -> None:
     parser.add_argument("provider", choices=sorted(PROVIDERS))
     parser.add_argument("--client-id", required=True,
                         help="client_id de l'app OAuth (visible dans la table oauth correspondante)")
+    parser.add_argument("--login-hint",
+                        help="e-mail du compte à pré-sélectionner (Google uniquement) — "
+                             "réduit le risque d'autoriser le mauvais compte")
     args = parser.parse_args()
 
     cfg = PROVIDERS[args.provider]
@@ -72,6 +75,8 @@ def main() -> None:
         "code_challenge_method": "S256",
         **cfg["extra"],
     }
+    if args.login_hint and args.provider == "google":
+        params["login_hint"] = args.login_hint
     url = f"{cfg['authorize_url']}?{urllib.parse.urlencode(params)}"
 
     print("1) Colle ce SQL dans le SQL editor Supabase (projet vandb-reservations) :\n")
