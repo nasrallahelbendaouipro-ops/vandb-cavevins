@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# DEPRECATED — kept for manual recovery only, and currently NON-FONCTIONNEL.
+# Menu syncing now runs server-side in the `canva-menu-sync` /
+# `canva-menu-sync-public` Edge Functions (see docs/PRODUCTION.md). Migration
+# 20260820130740 revoked the anon key's write access to the `menu` bucket and to
+# `menu_meta`, so the curl calls below now return 403. To use this script as a
+# fallback, swap SUPABASE_KEY for the service-role key (never commit it).
+#
 # Uploads page-N.png files from a local directory to the Supabase "menu" storage
 # bucket and updates menu_meta (page_count, updated_at) so menu.html picks them up.
 #
