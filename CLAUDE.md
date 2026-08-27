@@ -24,7 +24,11 @@ There is no lint, test, or build command — verify changes by loading the page 
 - **`menu.html`** — displays the daily menu as page images pulled from Supabase Storage, driven by a `menu_meta` table (`id=1`, columns `page_count`, `updated_at`). Renders one tab per page, with a lightbox for zoom. Falls back to distinct loading/error/empty states depending on query result.
 - **`reservation.html`** — table reservation form backed by Supabase (see below). Submitting inserts a row; a Postgres trigger then pushes the booking to the bar's Google Calendar and Google Sheet server-side (see "Integrations"). The page itself makes no Google calls.
 
-The **V and B St-Memmie logo** is an inline SVG repeated in every page (nav + footer on the landing page, header on the other two). It draws the speech-bubble mark filled with `currentColor` and knocks the `VandB` lettering out through an SVG `<mask>`, so it inverts correctly on light and dark backgrounds with no second asset. Each instance needs a **unique mask `id`** (`vb-nav`, `vb-foot`, `vb-menu`, `vb-resa`) — duplicate ids silently break the knockout. It is a recreation, not the franchise's official artwork: if the official file is supplied, replace all four instances.
+The **official V and B St-Memmie logo** ships as two PNGs in `Pics/`: `logo-vandb-stmemmie.png` (black, for light backgrounds) and `logo-vandb-stmemmie-blanc.png` (reversed, for dark ones). Both are 715×692 with a transparent background.
+
+Two files rather than one because **the artwork is a bitmap, not vector** — it came as a PDF-export SVG that was really a 715×676 PNG behind a mask, so it can't be recoloured in CSS. 715px is roughly 10× the largest on-page use, so it stays sharp on Retina; don't scale any instance past ~110px tall. The nav carries both files and swaps them with `display` on `.nav.solid` (`.vb-on-dark` / `.vb-on-light`).
+
+The logo already contains "ST-MEMMIE", so pages must not add a separate locality label next to it — and it needs ~68px of height for that line to stay legible, which is why `.nav` padding was reduced to `.9rem` to keep the bar from growing.
 
 Local social links (Instagram `vandb_stmemmie`, Facebook `VandBStMemmie`) appear on all three pages — **not** the national V and B accounts.
 

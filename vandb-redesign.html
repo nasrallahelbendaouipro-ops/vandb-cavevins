@@ -50,17 +50,19 @@
     /* ── Nav ── */
     .nav {
       position: fixed; inset: 0 0 auto 0; z-index: 900;
-      padding: 1.25rem 0; transition: background .3s, box-shadow .3s;
+      padding: .9rem 0; transition: background .3s, box-shadow .3s;
     }
     .nav.solid { background: var(--white); box-shadow: 0 1px 0 var(--border); }
     .nav-inner { display: flex; align-items: center; justify-content: space-between; }
-    .brand-lock { display: flex; align-items: center; gap: .7rem; color: var(--white); transition: color .3s; }
-    .nav.solid .brand-lock { color: var(--text); }
-    .vb-mark { height: 46px; width: auto; display: block; }
-    .brand-loc {
-      font-size: .68rem; font-weight: 800; letter-spacing: .22em; text-transform: uppercase;
-      padding-left: .7rem; border-left: 1px solid currentColor; opacity: .55; white-space: nowrap;
-    }
+    .brand-lock { display: block; }
+    .vb-mark { height: 70px; width: auto; display: block; }
+    /* The logo carries "ST-MEMMIE" itself, so the nav shows it whole rather
+       than pairing a mark with a separate locality label. Two files instead of
+       one: the artwork is a bitmap, so it can't be recoloured in CSS the way a
+       vector could. */
+    .nav .vb-on-light { display: none; }
+    .nav.solid .vb-on-dark { display: none; }
+    .nav.solid .vb-on-light { display: block; }
     .nav-socials { display: flex; gap: .4rem; margin-right: .35rem; }
     .nav-soc {
       width: 34px; height: 34px; border-radius: var(--r); display: flex; align-items: center; justify-content: center;
@@ -251,8 +253,8 @@
     /* ── Footer ── */
     .footer { background:#0A0908; padding:4rem 0 2rem; }
     .footer-top { display:grid; grid-template-columns:1.6fr repeat(3,1fr); gap:3rem; margin-bottom:3rem; }
-    .f-logo { color:var(--white); margin-bottom:1rem; }
-    .vb-full { height:104px; width:auto; display:block; }
+    .f-logo { margin-bottom:1rem; }
+    .vb-full { height:110px; width:auto; display:block; }
     .footer-brand p { font-size:.875rem; color:rgba(255,255,255,.38); line-height:1.7; max-width:260px; }
     .f-socials { display:flex; gap:.5rem; margin-top:1.5rem; }
     .f-soc { width:36px; height:36px; border:1px solid rgba(255,255,255,.1); border-radius:var(--r); display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.38); transition:color .2s, border-color .2s; }
@@ -293,7 +295,7 @@
     }
     @media(max-width:640px){
       .nav-socials { display:none; }
-      .brand-loc { display:none; }
+      .vb-mark { height:56px; }
       .prod-grid { grid-template-columns:repeat(2,1fr); }
       .hero-h1 { font-size:clamp(3rem,14vw,6rem); }
       .promo { height:420px; }
@@ -308,7 +310,10 @@
 <nav class="nav" id="nav">
   <div class="wrap">
     <div class="nav-inner">
-      <a href="#" class="brand-lock"><svg class="vb-mark" viewBox="0 0 236 186" role="img" aria-label="V and B"><mask id="vb-nav"><rect width="236" height="186" fill="#fff"/><text x="118" y="94" text-anchor="middle" fill="#000" font-family="'Bebas Neue','Arial Narrow',sans-serif" font-size="80" letter-spacing="1"><tspan>V</tspan><tspan font-size="39" dy="-3">and</tspan><tspan font-size="80" dy="3">B</tspan></text></mask><g mask="url(#vb-nav)" fill="currentColor"><g transform="rotate(-3.5 118 64)"><rect x="14" y="12" width="208" height="106" rx="4"/><polygon points="30,114 104,114 18,178"/></g></g></svg><span class="brand-loc">St-Memmie</span></a>
+      <a href="#" class="brand-lock">
+        <img class="vb-mark vb-on-dark" src="Pics/logo-vandb-stmemmie-blanc.png" alt="V and B St-Memmie" width="715" height="692" />
+        <img class="vb-mark vb-on-light" src="Pics/logo-vandb-stmemmie.png" alt="" aria-hidden="true" width="715" height="692" />
+      </a>
       <ul class="nav-links">
         <li><a href="#concept">Le Concept</a></li>
         <li><a href="#produits">Sélections</a></li>
@@ -620,7 +625,7 @@
   <div class="wrap">
     <div class="footer-top">
       <div class="footer-brand">
-        <div class="f-logo"><svg class="vb-full" viewBox="0 0 236 210" role="img" aria-label="V and B Saint-Memmie"><mask id="vb-foot"><rect width="236" height="210" fill="#fff"/><text x="118" y="94" text-anchor="middle" fill="#000" font-family="'Bebas Neue','Arial Narrow',sans-serif" font-size="80" letter-spacing="1"><tspan>V</tspan><tspan font-size="39" dy="-3">and</tspan><tspan font-size="80" dy="3">B</tspan></text></mask><g mask="url(#vb-foot)" fill="currentColor"><g transform="rotate(-3.5 118 64)"><rect x="14" y="12" width="208" height="106" rx="4"/><polygon points="30,114 104,114 18,178"/></g></g><text x="118" y="204" text-anchor="middle" fill="currentColor" font-family="Inter,sans-serif" font-size="26" font-weight="800" letter-spacing="3">ST-MEMMIE</text></svg></div>
+        <div class="f-logo"><img class="vb-full" src="Pics/logo-vandb-stmemmie-blanc.png" alt="V and B St-Memmie" width="715" height="692" /></div>
         <p>Cave &amp; Bar — Partageur de bons moments depuis 1994. Plus de 300 établissements à travers toute la France.</p>
         <nav class="f-socials" aria-label="Réseaux sociaux">
           <a href="https://www.instagram.com/vandb_stmemmie/" class="f-soc" aria-label="Instagram V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
