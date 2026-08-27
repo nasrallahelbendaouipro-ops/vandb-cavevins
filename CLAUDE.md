@@ -24,6 +24,10 @@ There is no lint, test, or build command — verify changes by loading the page 
 - **`menu.html`** — displays the daily menu as page images pulled from Supabase Storage, driven by a `menu_meta` table (`id=1`, columns `page_count`, `updated_at`). Renders one tab per page, with a lightbox for zoom. Falls back to distinct loading/error/empty states depending on query result.
 - **`reservation.html`** — table reservation form backed by Supabase (see below). Submitting inserts a row; a Postgres trigger then pushes the booking to the bar's Google Calendar and Google Sheet server-side (see "Integrations"). The page itself makes no Google calls.
 
+The **V and B St-Memmie logo** is an inline SVG repeated in every page (nav + footer on the landing page, header on the other two). It draws the speech-bubble mark filled with `currentColor` and knocks the `VandB` lettering out through an SVG `<mask>`, so it inverts correctly on light and dark backgrounds with no second asset. Each instance needs a **unique mask `id`** (`vb-nav`, `vb-foot`, `vb-menu`, `vb-resa`) — duplicate ids silently break the knockout. It is a recreation, not the franchise's official artwork: if the official file is supplied, replace all four instances.
+
+Local social links (Instagram `vandb_stmemmie`, Facebook `VandBStMemmie`) appear on all three pages — **not** the national V and B accounts.
+
 All three pages share the same design tokens (CSS custom properties for color/font — `--bg`, `--dark`, `--yellow` (`#E8A800`), `--red` (`#C5142B`), fonts `Bebas Neue` / `Playfair Display` / `Inter`) but each redeclares them locally rather than importing a shared stylesheet. When changing brand colors/fonts, update all three files.
 
 ## Backend (Supabase)

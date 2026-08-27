@@ -33,8 +33,20 @@
       width: 100%; max-width: 480px; background: var(--bg); color: var(--text);
       border-radius: 10px; padding: 2.75rem 2.25rem; box-shadow: 0 30px 80px rgba(0,0,0,.5);
     }
-    .brand { font-family: var(--fd); font-size: 1.9rem; letter-spacing: .04em; margin-bottom: .35rem; }
-    .brand b { color: var(--red); font-weight: 400; }
+    .brand { margin-bottom: 1.25rem; display: flex; align-items: center; gap: .6rem; color: inherit; }
+    .vb-mark { height: 38px; width: auto; display: block; }
+    .brand-loc {
+      font-size: .62rem; font-weight: 800; letter-spacing: .2em; text-transform: uppercase;
+      padding-left: .6rem; border-left: 1px solid currentColor; opacity: .5; white-space: nowrap;
+    }
+    .socials { display: flex; justify-content: center; gap: .5rem; margin-top: 1.75rem; }
+    .soc {
+      width: 34px; height: 34px; border-radius: var(--r); display: flex; align-items: center; justify-content: center;
+      color: var(--muted); border: 1px solid currentColor; opacity: .55;
+      transition: opacity .2s, color .2s;
+    }
+    .soc:hover { opacity: 1; color: var(--red); }
+    .soc svg { width: 15px; height: 15px; }
     h1 { font-family: var(--fs); font-style: italic; font-weight: 600; font-size: 1.5rem; margin-bottom: 1.75rem; color: var(--muted); }
     label { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .4rem; }
     .field { margin-bottom: 1.15rem; }
@@ -75,7 +87,7 @@
 </head>
 <body>
   <div class="card">
-    <div class="brand">V<b>AND</b>B</div>
+    <div class="brand"><svg class="vb-mark" viewBox="0 0 236 186" role="img" aria-label="V and B"><mask id="vb-resa"><rect width="236" height="186" fill="#fff"/><text x="118" y="94" text-anchor="middle" fill="#000" font-family="'Bebas Neue','Arial Narrow',sans-serif" font-size="80" letter-spacing="1"><tspan>V</tspan><tspan font-size="39" dy="-3">and</tspan><tspan font-size="80" dy="3">B</tspan></text></mask><g mask="url(#vb-resa)" fill="currentColor"><g transform="rotate(-3.5 118 64)"><rect x="14" y="12" width="208" height="106" rx="4"/><polygon points="30,114 104,114 18,178"/></g></g></svg><span class="brand-loc">St-Memmie</span></div>
 
     <div id="form-view">
       <h1>Réserver une table</h1>
@@ -130,6 +142,11 @@
       <h2>Réservation confirmée</h2>
       <p id="success-detail"></p>
     </div>
+
+    <nav class="socials" aria-label="Réseaux sociaux">
+      <a href="https://www.instagram.com/vandb_stmemmie/" class="soc" aria-label="Instagram V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+      <a href="https://www.facebook.com/VandBStMemmie" class="soc" aria-label="Facebook V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
+    </nav>
   </div>
 
   <script>
