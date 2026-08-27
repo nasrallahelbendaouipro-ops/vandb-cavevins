@@ -54,10 +54,22 @@
     }
     .nav.solid { background: var(--white); box-shadow: 0 1px 0 var(--border); }
     .nav-inner { display: flex; align-items: center; justify-content: space-between; }
-    .logo { font-family: var(--fd); font-size: 2.1rem; letter-spacing: .04em; color: var(--white); transition: color .3s; }
-    .logo b { color: var(--yellow); font-weight: 400; }
-    .nav.solid .logo { color: var(--text); }
-    .nav.solid .logo b { color: var(--red); }
+    .brand-lock { display: flex; align-items: center; gap: .7rem; color: var(--white); transition: color .3s; }
+    .nav.solid .brand-lock { color: var(--text); }
+    .vb-mark { height: 46px; width: auto; display: block; }
+    .brand-loc {
+      font-size: .68rem; font-weight: 800; letter-spacing: .22em; text-transform: uppercase;
+      padding-left: .7rem; border-left: 1px solid currentColor; opacity: .55; white-space: nowrap;
+    }
+    .nav-socials { display: flex; gap: .4rem; margin-right: .35rem; }
+    .nav-soc {
+      width: 34px; height: 34px; border-radius: var(--r); display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.22); transition: color .2s, border-color .2s;
+    }
+    .nav-soc:hover { color: var(--yellow); border-color: var(--yellow); }
+    .nav-soc svg { width: 15px; height: 15px; }
+    .nav.solid .nav-soc { color: var(--muted); border-color: var(--border); }
+    .nav.solid .nav-soc:hover { color: var(--red); border-color: var(--red); }
     .nav-links { display: flex; gap: 2.5rem; }
     .nav-links a {
       font-size: .76rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
@@ -239,8 +251,8 @@
     /* ── Footer ── */
     .footer { background:#0A0908; padding:4rem 0 2rem; }
     .footer-top { display:grid; grid-template-columns:1.6fr repeat(3,1fr); gap:3rem; margin-bottom:3rem; }
-    .f-logo { font-family:var(--fd); font-size:2rem; letter-spacing:.05em; color:var(--white); margin-bottom:.75rem; }
-    .f-logo b { color:var(--yellow); font-weight:400; }
+    .f-logo { color:var(--white); margin-bottom:1rem; }
+    .vb-full { height:104px; width:auto; display:block; }
     .footer-brand p { font-size:.875rem; color:rgba(255,255,255,.38); line-height:1.7; max-width:260px; }
     .f-socials { display:flex; gap:.5rem; margin-top:1.5rem; }
     .f-soc { width:36px; height:36px; border:1px solid rgba(255,255,255,.1); border-radius:var(--r); display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.38); transition:color .2s, border-color .2s; }
@@ -280,6 +292,8 @@
       .footer-top { grid-template-columns:1fr; }
     }
     @media(max-width:640px){
+      .nav-socials { display:none; }
+      .brand-loc { display:none; }
       .prod-grid { grid-template-columns:repeat(2,1fr); }
       .hero-h1 { font-size:clamp(3rem,14vw,6rem); }
       .promo { height:420px; }
@@ -294,7 +308,7 @@
 <nav class="nav" id="nav">
   <div class="wrap">
     <div class="nav-inner">
-      <a href="#" class="logo">V<b>&</b>B</a>
+      <a href="#" class="brand-lock"><svg class="vb-mark" viewBox="0 0 236 186" role="img" aria-label="V and B"><mask id="vb-nav"><rect width="236" height="186" fill="#fff"/><text x="118" y="94" text-anchor="middle" fill="#000" font-family="'Bebas Neue','Arial Narrow',sans-serif" font-size="80" letter-spacing="1"><tspan>V</tspan><tspan font-size="39" dy="-3">and</tspan><tspan font-size="80" dy="3">B</tspan></text></mask><g mask="url(#vb-nav)" fill="currentColor"><g transform="rotate(-3.5 118 64)"><rect x="14" y="12" width="208" height="106" rx="4"/><polygon points="30,114 104,114 18,178"/></g></g></svg><span class="brand-loc">St-Memmie</span></a>
       <ul class="nav-links">
         <li><a href="#concept">Le Concept</a></li>
         <li><a href="#produits">Sélections</a></li>
@@ -303,6 +317,10 @@
         <li><a href="#tireuse">Tireuse</a></li>
       </ul>
       <div class="nav-cta">
+        <nav class="nav-socials" aria-label="Réseaux sociaux">
+          <a href="https://www.instagram.com/vandb_stmemmie/" class="nav-soc" aria-label="Instagram V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          <a href="https://www.facebook.com/VandBStMemmie" class="nav-soc" aria-label="Facebook V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
+        </nav>
         <a href="#trouver" class="btn btn-ghost" id="nbtn" style="font-size:.72rem;">Trouver un bar</a>
         <a href="#" class="btn btn-yellow" style="font-size:.72rem;">E-shop</a>
       </div>
@@ -602,12 +620,11 @@
   <div class="wrap">
     <div class="footer-top">
       <div class="footer-brand">
-        <div class="f-logo">V<b>&</b>B</div>
+        <div class="f-logo"><svg class="vb-full" viewBox="0 0 236 210" role="img" aria-label="V and B Saint-Memmie"><mask id="vb-foot"><rect width="236" height="210" fill="#fff"/><text x="118" y="94" text-anchor="middle" fill="#000" font-family="'Bebas Neue','Arial Narrow',sans-serif" font-size="80" letter-spacing="1"><tspan>V</tspan><tspan font-size="39" dy="-3">and</tspan><tspan font-size="80" dy="3">B</tspan></text></mask><g mask="url(#vb-foot)" fill="currentColor"><g transform="rotate(-3.5 118 64)"><rect x="14" y="12" width="208" height="106" rx="4"/><polygon points="30,114 104,114 18,178"/></g></g><text x="118" y="204" text-anchor="middle" fill="currentColor" font-family="Inter,sans-serif" font-size="26" font-weight="800" letter-spacing="3">ST-MEMMIE</text></svg></div>
         <p>Cave &amp; Bar — Partageur de bons moments depuis 1994. Plus de 300 établissements à travers toute la France.</p>
-        <nav class="f-socials">
-          <a href="https://www.instagram.com/vandb_officiel/" class="f-soc" aria-label="Instagram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          <a href="https://www.facebook.com/vandb" class="f-soc" aria-label="Facebook" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
-          <a href="https://www.tiktok.com/@vandb" class="f-soc" aria-label="TikTok" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V9.43a8.16 8.16 0 004.77 1.52V7.5a4.85 4.85 0 01-1.01-.81z"/></svg></a>
+        <nav class="f-socials" aria-label="Réseaux sociaux">
+          <a href="https://www.instagram.com/vandb_stmemmie/" class="f-soc" aria-label="Instagram V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          <a href="https://www.facebook.com/VandBStMemmie" class="f-soc" aria-label="Facebook V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
         </nav>
       </div>
       <div><div class="f-col-title">Explorer</div><ul class="f-links"><li><a href="#concept">Notre concept</a></li><li><a href="#produits">Bières &amp; Vins</a></li><li><a href="#evenements">Événements</a></li><li><a href="#">E-shop</a></li></ul></div>
@@ -615,7 +632,7 @@
       <div><div class="f-col-title">Infos</div><ul class="f-links"><li><a href="#">Qui sommes-nous ?</a></li><li><a href="#">Franchise V and B</a></li><li><a href="#">Blog</a></li><li><a href="#">Recrutement</a></li><li><a href="#">Contact</a></li></ul></div>
     </div>
     <div class="footer-bottom">
-      <p class="footer-copy">© 2025 V and B — Tous droits réservés.</p>
+      <p class="footer-copy">© 2026 V and B St-Memmie — Tous droits réservés.</p>
       <nav class="footer-legal"><a href="#">Mentions légales</a><a href="#">CGV</a><a href="#">Politique de confidentialité</a><a href="#">Cookies</a></nav>
     </div>
   </div>
