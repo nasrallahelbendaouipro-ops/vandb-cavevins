@@ -186,6 +186,16 @@
       }
       const { remaining } = data[0];
       const party = parseInt(partyInput.value || '0', 10);
+
+      // remaining vaut null quand aucun plafond n'est posé sur cette date, ce
+      // qui est le cas par défaut : c'est le responsable qui arbitre le nombre
+      // de couverts, pas le site. On n'affiche alors aucun compteur.
+      if (remaining === null) {
+        availBox.className = 'avail';
+        availBox.textContent = '';
+        return;
+      }
+
       if (remaining <= 0) {
         availBox.className = 'avail full';
         availBox.textContent = 'Complet pour cette date';

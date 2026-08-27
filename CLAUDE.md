@@ -39,8 +39,8 @@ All three pages share the same design tokens (CSS custom properties for color/fo
 `menu.html` and `reservation.html` talk directly to a dedicated Supabase project (ref `vfkjiprgawimhmieikyw`) via the `@supabase/supabase-js` UMD build loaded from CDN, using a hardcoded publishable (anon) key in the page source — this is expected for a public anon key, not a leak.
 
 Known schema (from prior work, verify with `list_tables` before relying on it):
-- **`reservations`** — RLS enabled; the anon key can only **INSERT**, never SELECT/UPDATE/DELETE. A `BEFORE INSERT/UPDATE` trigger (`check_reservation_capacity`) atomically enforces a per-date covers cap in Postgres.
-- **`capacity_overrides`** — per-date reservation cap (default 40 covers if no override row exists for that date).
+- **`reservations`** — RLS enabled; the anon key can only **INSERT**, never SELECT/UPDATE/DELETE. A `BEFORE INSERT/UPDATE` trigger (`check_reservation_capacity`) atomically enforces the per-date covers cap in Postgres, when one is set.
+- **`capacity_overrides`** — opt-in per-date cover cap. A date with **no row here has no limit at all** — the managers decide the maximum, not the site. `get_availability` then returns `max_covers`/`remaining` as `null`, which `reservation.html` reads as "show no counter". The anti-spam rate limit is independent and always applies.
 - **`get_availability(p_date)`** — security-definer RPC used by the reservation form to show remaining covers without exposing other customers' rows.
 - **`menu_meta`** — single-row-per-menu metadata (`page_count`, `updated_at`) read by `menu.html`.
 - Menu page images live in Supabase Storage at `menu/page-{n}.png`, fetched as `{SUPABASE_URL}/storage/v1/object/public/menu/page-{n}.png?v={updated_at}` for cache-busting.
