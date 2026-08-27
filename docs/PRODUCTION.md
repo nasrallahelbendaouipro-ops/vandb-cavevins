@@ -41,7 +41,7 @@ n'existaient auparavant que dans le cloud Supabase : une suppression accidentell
 
 ## B. Ce qu'il reste à régler avant de dire « c'est en production »
 
-### B1. ⚠️ Statut de publication de l'app OAuth Google — bloquant
+### B1. Statut de publication de l'app OAuth Google — ✅ réglé
 
 Si l'écran de consentement OAuth du projet Google Cloud est en statut
 **« Test »**, Google **révoque le refresh token au bout de 7 jours**. La synchro
@@ -49,12 +49,18 @@ agenda/sheets s'arrêterait alors silencieusement : les réservations continuera
 d'être enregistrées en base, mais n'apparaîtraient plus ni dans l'agenda ni dans
 le tableur, avec seulement un `calendar_sync_error` en base pour le signaler.
 
-Les scopes utilisés (`calendar.events`, `spreadsheets`) sont des scopes
-« sensibles ». Le compte cible étant `stmemmie@vandb.fr` (donc a priori un
-Google Workspace), la sortie prévue est de passer l'app en **Internal** — voir
-la procédure et son piège en **C1, étape 1**.
+**Réglé le 2026-08-27** : l'app est passée en **« En production »**, type
+**Externe**. L'expiration à 7 jours ne s'applique donc plus.
 
-À vérifier dans Google Cloud Console → *APIs & Services* → *OAuth consent screen*.
+*Internal* n'a pas pu être utilisé : `stmemmie@vandb.fr` est un compte Workspace
+géré dont l'administrateur n'autorise pas la création de projets Google Cloud
+(`resourcemanager.projects.create` refusé), et aucune organisation Cloud n'est
+rattachée au compte. Voir la dette qui en découle en **B4**.
+
+Le statut se relit dans Google Cloud Console → *Google Auth Platform* →
+*Audience*. Il doit indiquer « En production » — s'il repasse en mode test, la
+synchro se coupera sept jours plus tard, sans autre signal qu'un
+`calendar_sync_error`.
 
 ### B2. Nom de domaine
 
@@ -77,6 +83,21 @@ perte d'accès à ce compte fait perdre la base de réservations.
 
 ---
 
+### B4. Dette : le projet Google Cloud appartient au compte de développement
+
+Le client OAuth (`505725654164-…apps.googleusercontent.com`) vit dans un projet
+Google Cloud du compte de développement, pas du bar. Les données (évènements
+d'agenda, tableur) sont bien dans le compte du bar — c'est le compte qui consent
+qui les reçoit, pas le propriétaire du projet — mais **l'identité de
+l'application** dépend encore d'un compte personnel. S'il est fermé, il faudra
+recréer un client OAuth.
+
+Correction : demander à l'administrateur du domaine `vandb.fr` soit de créer un
+projet Cloud sous le domaine, soit d'accorder le rôle *Créateur de projet* à
+`stmemmie@vandb.fr`. La migration coûte alors un nouveau `client_id` /
+`client_secret` dans `google_calendar_oauth` et **un seul re-consentement** —
+rien d'autre ne change.
+
 ## C. Bascule vers le compte pro du bar
 
 Compte cible retenu : **`stmemmie@vandb.fr`**. Décisions actées :
@@ -94,74 +115,35 @@ rien n'est cassé entre-temps.
 
 Ordre : Google d'abord (le plus sensible), Canva ensuite.
 
-### C1. Google Agenda + Google Sheets
+### C1. Google Agenda + Google Sheets — ✅ fait le 2026-08-27
 
-**Étape 1 — régler le statut de publication (à faire AVANT de consentir).**
+Déroulé effectif :
 
-`vandb.fr` étant un domaine, le compte est très probablement un Google Workspace,
-donc l'option **Internal** est le bon choix : ni vérification Google, ni écran
-d'avertissement, ni expiration du refresh token à 7 jours.
+1. Écran de consentement passé en **Externe / En production** (voir B1 et B4).
+2. Consentement donné par `stmemmie@vandb.fr` via l'URL générée par
+   `scripts/oauth-connect.py google --client-id … --login-hint stmemmie@vandb.fr`.
+3. `spreadsheet_id` remis à `null` et `sheet_next_row` à `2` **après** le
+   consentement — l'ancien tableur vivait dans le Drive du compte de dev, auquel
+   le nouveau jeton n'a pas accès : le laisser aurait fait échouer l'écriture de
+   la première réservation.
+4. Réservation de test : évènement d'agenda créé, **nouveau tableur créé
+   automatiquement dans le Drive du bar**
+   (`1K6aGVJQZOLDwditj-8pAMt15U7XwMeGTx8ToEL7dxCk`), `calendar_sync_error` à
+   `null`. Test supprimé de la base ensuite.
 
-⚠️ **Piège** : *Internal* n'est sélectionnable que si le **projet Google Cloud**
-qui porte le client OAuth appartient à l'organisation `vandb.fr`. Si le client
-actuel (`505725654164-…apps.googleusercontent.com`) a été créé dans un projet
-rattaché à un compte personnel, l'option sera grisée. Deux issues :
-
-- **Recommandé** : recréer le client OAuth dans un projet Google Cloud créé
-  *à l'intérieur* de l'organisation `vandb.fr` (par un admin du Workspace), puis
-  reporter le nouveau `client_id` / `client_secret` dans `google_calendar_oauth`
-  et regénérer l'URL de consentement avec `scripts/oauth-connect.py`.
-- **Repli** : garder le client actuel en *External* et passer le statut de
-  publication de « Testing » à **« In production »**. L'app reste non vérifiée
-  (écran « Google n'a pas validé cette application » → *Paramètres avancés →
-  Continuer*), mais l'expiration à 7 jours disparaît.
-
-Vérifier aussi que l'URI de redirection
-`https://vfkjiprgawimhmieikyw.supabase.co/functions/v1/google-oauth-callback`
-est bien déclarée dans le client OAuth.
-
-**Étape 2 — créer l'agenda dédié.**
-
-Dans Google Agenda de `stmemmie@vandb.fr` : *Autres agendas → Créer un agenda*,
-nom « Réservations V and B », fuseau Europe/Paris. Récupérer son identifiant dans
-*Paramètres de l'agenda → Intégrer l'agenda → ID de l'agenda* (de la forme
-`…@group.calendar.google.com`).
-
-**Étape 3 — consentir.**
-
-Ouvrir l'URL de consentement **dans une fenêtre de navigation privée**, en se
-connectant à `stmemmie@vandb.fr` (le `login_hint` pré-remplit le compte, mais une
-session personnelle déjà ouverte peut passer devant — d'où la navigation privée).
-La page « Google connected » confirme.
-
-Si l'URL a expiré ou si le client OAuth a changé, en regénérer une :
-
-```bash
-scripts/oauth-connect.py google \
-  --client-id <CLIENT_ID> --login-hint stmemmie@vandb.fr
-```
-
-puis exécuter le SQL affiché avant d'ouvrir l'URL.
-
-**Étape 4 — pointer sur les bonnes ressources.**
+**Reste à faire** : `calendar_id` vaut encore `'primary'`, c'est-à-dire l'agenda
+principal de `stmemmie@vandb.fr`. Pour basculer sur l'agenda dédié
+« Réservations V and B » une fois créé :
 
 ```sql
 update google_calendar_oauth
-   set calendar_id = '<ID_DE_L_AGENDA_DEDIE>',  -- …@group.calendar.google.com
-       spreadsheet_id = null,   -- null => nouveau tableur créé dans le Drive du bar
-       sheet_next_row = 2       -- 2 = première ligne sous l'en-tête
+   set calendar_id = '<ID>@group.calendar.google.com'
  where id = 1;
 ```
 
-À exécuter **après** le consentement, pas avant : tant que l'ancien jeton est
-actif, mettre `spreadsheet_id` à `null` ferait créer le nouveau tableur dans le
-mauvais Drive. Et ne remettre `sheet_next_row = 2` que conjointement à
-`spreadsheet_id = null` — sur un tableur existant, cela écraserait les lignes
-déjà présentes.
-
-Le tableur est créé à la première réservation qui suit, avec ses deux onglets
-(« Résumé quotidien » et « Réservations ») et sa mise en forme. L'historique des
-réservations de test ne suit pas — il reste dans l'ancien tableur.
+**Attention** : la bascule ne rejoue pas l'historique. Les réservations
+antérieures restent dans l'agenda et le tableur d'origine ; les réservations à
+venir encore valides doivent être recopiées à la main dans le nouvel agenda.
 
 ### C2. Canva
 
