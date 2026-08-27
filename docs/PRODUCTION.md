@@ -50,17 +50,9 @@ d'être enregistrées en base, mais n'apparaîtraient plus ni dans l'agenda ni d
 le tableur, avec seulement un `calendar_sync_error` en base pour le signaler.
 
 Les scopes utilisés (`calendar.events`, `spreadsheets`) sont des scopes
-« sensibles », donc le choix dépend du type de compte du bar :
-
-- **Le bar a un Google Workspace** (adresse `@nomdubar.fr`) → mettre
-  *User type* = **Internal**. Pas de vérification Google, pas d'écran
-  d'avertissement, pas d'expiration à 7 jours. **Option recommandée.**
-- **Le bar utilise une adresse Gmail simple** → garder *External* et passer le
-  statut de publication de « Testing » à **« In production »**. L'app reste non
-  vérifiée : au moment de la connexion, Google affichera un écran
-  « Google n'a pas validé cette application » qu'il faut passer via
-  *Paramètres avancés → Continuer*. C'est acceptable ici (un seul utilisateur,
-  limite de 100), et cela supprime l'expiration à 7 jours.
+« sensibles ». Le compte cible étant `stmemmie@vandb.fr` (donc a priori un
+Google Workspace), la sortie prévue est de passer l'app en **Internal** — voir
+la procédure et son piège en **C1, étape 1**.
 
 À vérifier dans Google Cloud Console → *APIs & Services* → *OAuth consent screen*.
 
@@ -87,105 +79,117 @@ perte d'accès à ce compte fait perdre la base de réservations.
 
 ## C. Bascule vers le compte pro du bar
 
-Ordre conseillé : Google d'abord (le plus sensible), Canva ensuite.
+Compte cible retenu : **`stmemmie@vandb.fr`**. Décisions actées :
+
+| Point | Choix |
+| --- | --- |
+| Agenda | un agenda **dédié** « Réservations V and B » dans le compte du bar |
+| Tableur | un **nouveau** tableur créé automatiquement dans le Drive du bar |
+| Intégration Canva | on **garde** l'intégration actuelle (`OC-AZ_4RD6WExaX`), le compte du bar est ajouté à l'équipe qui la possède |
+
+Les paires PKCE sont déjà en place en base (`pending_state` / `pending_code_verifier`),
+les URLs de consentement sont donc directement utilisables. Les connexions
+actuelles restent actives tant qu'un nouveau consentement ne les a pas remplacées :
+rien n'est cassé entre-temps.
+
+Ordre : Google d'abord (le plus sensible), Canva ensuite.
 
 ### C1. Google Agenda + Google Sheets
 
-**Prérequis.** Décider d'abord de deux choses :
+**Étape 1 — régler le statut de publication (à faire AVANT de consentir).**
 
-- **Quel agenda ?** Aujourd'hui `calendar_id = 'primary'`, c'est-à-dire l'agenda
-  principal du compte connecté. En pro, mieux vaut créer un agenda dédié
-  « Réservations V and B » dans le compte du bar : il se partage avec l'équipe
-  sans exposer l'agenda personnel du gérant, et se retire d'un clic à un départ.
-  Son identifiant se trouve dans *Paramètres de l'agenda → Intégrer l'agenda →
-  ID de l'agenda* (de la forme `...@group.calendar.google.com`).
-- **Quel tableur ?** Le tableur actuel (`1drAqbR5...`) est dans le Drive du compte
-  de développement. Deux possibilités : le partager en écriture au compte du bar
-  et garder son ID, ou — plus propre — le laisser de côté et laisser la function
-  en créer un neuf dans le Drive du bar (elle le fait automatiquement, avec ses
-  deux onglets et sa mise en forme, si `spreadsheet_id` est vide).
+`vandb.fr` étant un domaine, le compte est très probablement un Google Workspace,
+donc l'option **Internal** est le bon choix : ni vérification Google, ni écran
+d'avertissement, ni expiration du refresh token à 7 jours.
 
-**Étapes.**
+⚠️ **Piège** : *Internal* n'est sélectionnable que si le **projet Google Cloud**
+qui porte le client OAuth appartient à l'organisation `vandb.fr`. Si le client
+actuel (`505725654164-…apps.googleusercontent.com`) a été créé dans un projet
+rattaché à un compte personnel, l'option sera grisée. Deux issues :
 
-1. Google Cloud Console, dans le projet qui porte le client OAuth : régler le
-   statut de publication (section B1) et vérifier que l'URI de redirection
-   `https://vfkjiprgawimhmieikyw.supabase.co/functions/v1/google-oauth-callback`
-   est bien déclarée dans le client OAuth.
+- **Recommandé** : recréer le client OAuth dans un projet Google Cloud créé
+  *à l'intérieur* de l'organisation `vandb.fr` (par un admin du Workspace), puis
+  reporter le nouveau `client_id` / `client_secret` dans `google_calendar_oauth`
+  et regénérer l'URL de consentement avec `scripts/oauth-connect.py`.
+- **Repli** : garder le client actuel en *External* et passer le statut de
+  publication de « Testing » à **« In production »**. L'app reste non vérifiée
+  (écran « Google n'a pas validé cette application » → *Paramètres avancés →
+  Continuer*), mais l'expiration à 7 jours disparaît.
 
-2. Générer l'URL de consentement :
+Vérifier aussi que l'URI de redirection
+`https://vfkjiprgawimhmieikyw.supabase.co/functions/v1/google-oauth-callback`
+est bien déclarée dans le client OAuth.
 
-   ```bash
-   scripts/oauth-connect.py google --client-id <CLIENT_ID>
-   ```
+**Étape 2 — créer l'agenda dédié.**
 
-   (Le `client_id` se lit dans la table `google_calendar_oauth`. Si le bar crée
-   son **propre** projet Google Cloud — recommandé si le compte pro doit rester
-   maître de l'intégration — mettre d'abord à jour `client_id` et `client_secret`
-   dans cette table.)
+Dans Google Agenda de `stmemmie@vandb.fr` : *Autres agendas → Créer un agenda*,
+nom « Réservations V and B », fuseau Europe/Paris. Récupérer son identifiant dans
+*Paramètres de l'agenda → Intégrer l'agenda → ID de l'agenda* (de la forme
+`…@group.calendar.google.com`).
 
-3. Exécuter le SQL affiché par le script dans le SQL editor Supabase, puis
-   ouvrir l'URL de consentement **dans un navigateur connecté au compte pro du
-   bar** (fenêtre de navigation privée conseillée pour ne pas autoriser par
-   erreur le compte personnel). La page « Google connected » confirme.
+**Étape 3 — consentir.**
 
-4. Pointer la configuration sur les bonnes ressources :
+Ouvrir l'URL de consentement **dans une fenêtre de navigation privée**, en se
+connectant à `stmemmie@vandb.fr` (le `login_hint` pré-remplit le compte, mais une
+session personnelle déjà ouverte peut passer devant — d'où la navigation privée).
+La page « Google connected » confirme.
 
-   ```sql
-   update google_calendar_oauth
-      set calendar_id = '<ID_DE_L_AGENDA_DEDIE>',  -- ou 'primary'
-          spreadsheet_id = null,   -- null => nouveau tableur créé dans le Drive du bar
-          sheet_next_row = 2       -- 2 = première ligne sous l'en-tête
-    where id = 1;
-   ```
+Si l'URL a expiré ou si le client OAuth a changé, en regénérer une :
 
-   ⚠️ Ne remettre `sheet_next_row = 2` **que** si `spreadsheet_id` est remis à
-   `null`. Sur un tableur existant, cela écraserait les lignes déjà présentes.
+```bash
+scripts/oauth-connect.py google \
+  --client-id <CLIENT_ID> --login-hint stmemmie@vandb.fr
+```
 
-5. Vérifier (voir C3).
+puis exécuter le SQL affiché avant d'ouvrir l'URL.
+
+**Étape 4 — pointer sur les bonnes ressources.**
+
+```sql
+update google_calendar_oauth
+   set calendar_id = '<ID_DE_L_AGENDA_DEDIE>',  -- …@group.calendar.google.com
+       spreadsheet_id = null,   -- null => nouveau tableur créé dans le Drive du bar
+       sheet_next_row = 2       -- 2 = première ligne sous l'en-tête
+ where id = 1;
+```
+
+À exécuter **après** le consentement, pas avant : tant que l'ancien jeton est
+actif, mettre `spreadsheet_id` à `null` ferait créer le nouveau tableur dans le
+mauvais Drive. Et ne remettre `sheet_next_row = 2` que conjointement à
+`spreadsheet_id = null` — sur un tableur existant, cela écraserait les lignes
+déjà présentes.
+
+Le tableur est créé à la première réservation qui suit, avec ses deux onglets
+(« Résumé quotidien » et « Réservations ») et sa mise en forme. L'historique des
+réservations de test ne suit pas — il reste dans l'ancien tableur.
 
 ### C2. Canva
 
-Deux points à trancher, parce que Canva ne fonctionne pas comme Google ici :
+L'intégration reste celle du compte de développement (`OC-AZ_4RD6WExaX`). Deux
+conditions doivent être réunies **avant** d'ouvrir l'URL de consentement, sinon
+la connexion échoue ou la synchro casse juste après :
 
-- **L'app Canva (client_id/secret)** est créée dans le Canva Developer Portal et
-  appartient à une équipe. Tant qu'elle n'est pas publiée, **seuls les membres de
-  l'équipe propriétaire peuvent l'autoriser**. Donc soit l'équipe Canva pro du
-  bar recrée l'intégration de son côté (et on remplace `client_id` /
-  `client_secret` dans `canva_oauth`), soit le compte pro du bar est ajouté à
-  l'équipe qui possède l'app actuelle. La première option est la plus saine pour
-  un compte professionnel.
-- **Le design du menu** (`design_id` actuel : `DAHSkhiNJC4`) vit dans le compte
-  de développement. Le design du menu doit exister dans le Canva du bar — soit
-  en le copiant, soit en repartant du design existant partagé à l'équipe. Son
-  identifiant est le segment de l'URL Canva : `canva.com/design/<DESIGN_ID>/...`.
+1. **`stmemmie@vandb.fr` doit être membre de l'équipe Canva qui possède
+   l'intégration.** Tant qu'une intégration n'est pas publiée, Canva n'autorise
+   que les membres de l'équipe propriétaire — un compte extérieur se verra
+   refuser l'autorisation.
+2. **Ce compte doit avoir accès au design du menu** (`design_id` actuel :
+   `DAHSkhiNJC4`). Le jeton obtenu est celui du compte qui consent : s'il ne voit
+   pas ce design, `GET /designs/DAHSkhiNJC4` renvoie 404 et le menu cesse d'être
+   mis à jour. Partager le design avec le compte du bar, ou le déplacer dans un
+   dossier d'équipe accessible.
 
-**Étapes.**
+Si le menu doit à terme vivre dans le Canva du bar (design différent), mettre à
+jour `design_id` et forcer une resynchro complète :
 
-1. Dans le Developer Portal du compte Canva pro : créer l'intégration, y
-   déclarer l'URI de redirection
-   `https://vfkjiprgawimhmieikyw.supabase.co/functions/v1/canva-oauth-callback`
-   et les scopes `design:meta:read` et `design:content:read`.
+```sql
+update canva_oauth
+   set design_id = '<NOUVEAU_DESIGN_ID>',       -- canva.com/design/<ID>/...
+       last_synced_design_updated_at = null     -- force une resynchro complète
+ where id = 1;
+```
 
-2. Mettre à jour la configuration :
-
-   ```sql
-   update canva_oauth
-      set client_id = '<NOUVEAU_CLIENT_ID>',
-          client_secret = '<NOUVEAU_CLIENT_SECRET>',
-          design_id = '<DESIGN_ID_DU_MENU_DU_BAR>',
-          refresh_token = null,
-          access_token = null,
-          access_token_expires_at = null,
-          last_synced_design_updated_at = null  -- force une resynchro complète
-    where id = 1;
-   ```
-
-3. ```bash
-   scripts/oauth-connect.py canva --client-id <NOUVEAU_CLIENT_ID>
-   ```
-   puis même déroulé qu'en C1 étape 3, connecté au compte Canva pro.
-
-4. Déclencher une synchro et vérifier (C3).
+Puis ouvrir l'URL de consentement Canva, connecté au compte du bar.
 
 ### C3. Vérification après bascule
 
@@ -201,11 +205,11 @@ Puis, dans l'ordre :
 
 1. Ouvrir <https://vandb-cavevins.netlify.app/menu.html> : les pages du menu
    doivent s'afficher et « Menu mis à jour … » refléter la synchro récente.
-   Modifier une virgule dans le design Canva du bar, recharger : le menu doit
-   suivre (immédiatement via la synchro à l'ouverture, sinon sous 15 min via le cron).
+   Modifier une virgule dans le design Canva, recharger : le menu doit suivre
+   (immédiatement via la synchro à l'ouverture, sinon sous 15 min via le cron).
 2. Passer une réservation de test sur <https://vandb-cavevins.netlify.app/reservation.html>.
-3. Vérifier qu'elle apparaît dans l'agenda **du bar** et dans le tableur **du bar**,
-   puis :
+3. Vérifier qu'elle apparaît dans l'agenda **dédié du bar** et dans le **nouveau**
+   tableur, puis :
 
    ```sql
    select customer_name, calendar_event_id is not null as dans_agenda, calendar_sync_error
@@ -216,8 +220,8 @@ Puis, dans l'ordre :
 4. Supprimer la réservation de test (`delete from reservations where id = '...'`),
    l'évènement d'agenda et la ligne du tableur — la suppression en base ne les
    retire pas automatiquement.
-
----
+5. **Contrôler à J+8** que la synchro fonctionne toujours : c'est le test qui
+   prouve que le problème d'expiration à 7 jours (étape C1.1) est bien réglé.
 
 ## D. Exploitation courante
 
