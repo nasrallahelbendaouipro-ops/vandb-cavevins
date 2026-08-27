@@ -27,8 +27,9 @@ n'existaient auparavant que dans le cloud Supabase : une suppression accidentell
 1. `reservation.html` fait un `INSERT` sur `reservations` avec la clé anon
    (INSERT seul — pas de SELECT/UPDATE/DELETE possible).
 2. Trois triggers Postgres se déclenchent : anti-spam (`check_reservation_rate_limit`),
-   plafond de couverts (`check_reservation_capacity`, 40 couverts/jour par défaut,
-   surchargeable par date via `capacity_overrides`), puis `notify_reservation_created`.
+   plafond de couverts (`check_reservation_capacity`, qui ne s'applique qu'aux
+   dates ayant une ligne dans `capacity_overrides` — aucun plafond par défaut),
+   puis `notify_reservation_created`.
 3. `notify_reservation_created` appelle `reservation-calendar-sync` via `pg_net`,
    authentifié par le `sync_secret` stocké en base.
 4. La function crée l'évènement Google Agenda (2 h, fuseau `Europe/Paris`), puis
@@ -229,8 +230,23 @@ Un `token refresh failed` sur ce champ = la connexion Google est tombée
 
 Autres points d'exploitation :
 
-- **Plafond de couverts** : 40/jour par défaut. Pour une date particulière :
-  `insert into capacity_overrides values ('2026-12-31', 80) on conflict (reservation_date) do update set max_covers = excluded.max_covers;`
+- **Plafond de couverts** : **aucun par défaut** depuis le 2026-08-27 — le
+  nombre de couverts est arbitré par les responsables, pas par le site. Une date
+  n'est plafonnée que si elle a une ligne dans `capacity_overrides` :
+
+  ```sql
+  -- poser un plafond sur une date
+  insert into capacity_overrides values ('2026-12-31', 80)
+  on conflict (reservation_date) do update set max_covers = excluded.max_covers;
+
+  -- le retirer
+  delete from capacity_overrides where reservation_date = '2026-12-31';
+  ```
+
+  Quand une date n'est pas plafonnée, `get_availability` renvoie `max_covers` et
+  `remaining` à `null`, et `reservation.html` n'affiche alors aucun compteur de
+  couverts. Le garde-fou anti-spam (`check_reservation_rate_limit`) reste actif
+  dans tous les cas : il est indépendant du plafond.
 - **Cron menu** : job `canva-menu-sync-every-15-min`, visible via `select * from cron.job;`
 - **Rien ne notifie l'équipe d'une nouvelle réservation** en dehors de l'agenda
   et du tableur : pas d'e-mail ni de SMS. Le texte de confirmation de
