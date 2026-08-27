@@ -33,8 +33,15 @@
       padding: 1.1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,.08);
       position: sticky; top: 0; background: var(--dark); z-index: 5;
     }
-    .brand { font-family: var(--fd); font-size: 1.6rem; letter-spacing: .04em; }
-    .brand b { color: var(--red); font-weight: 400; }
+    .vb-mark { height: 68px; width: auto; display: block; }
+    .socials { display: flex; justify-content: center; gap: .5rem; margin-top: 1.75rem; }
+    .soc {
+      width: 34px; height: 34px; border-radius: var(--r); display: flex; align-items: center; justify-content: center;
+      color: var(--muted); border: 1px solid currentColor; opacity: .55;
+      transition: opacity .2s, color .2s;
+    }
+    .soc:hover { opacity: 1; color: var(--red); }
+    .soc svg { width: 15px; height: 15px; }
     .back-link {
       font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
       color: var(--yellow); text-decoration: none; border: 1px solid rgba(232,168,0,.4);
@@ -87,7 +94,7 @@
 </head>
 <body>
   <header>
-    <div class="brand">V<b>AND</b>B</div>
+    <a href="vandb-redesign.html" aria-label="Accueil V and B St-Memmie"><img class="vb-mark" src="Pics/logo-vandb-stmemmie-blanc.png" alt="V and B St-Memmie" width="715" height="692" /></a>
     <a class="back-link" href="reservation.html">Réserver</a>
   </header>
 
@@ -112,6 +119,10 @@
       <div id="panels"></div>
       <p id="updated" class="updated"></p>
     </div>
+    <nav class="socials" aria-label="Réseaux sociaux">
+      <a href="https://www.instagram.com/vandb_stmemmie/" class="soc" aria-label="Instagram V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+      <a href="https://www.facebook.com/VandBStMemmie" class="soc" aria-label="Facebook V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
+    </nav>
   </main>
 
   <div id="lightbox" class="lightbox">

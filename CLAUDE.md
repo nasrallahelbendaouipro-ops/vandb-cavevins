@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Static marketing/ops site for **V and B** (vandb.fr), a French cave-à-vins-et-bières franchise. No build system, no package manager, no bundler — each page is a single self-contained `.html` file with inline `<style>` and inline `<script>`. Not a git repository.
+Static marketing/ops site for **V and B** (vandb.fr), a French cave-à-vins-et-bières franchise. No build system, no package manager, no bundler — each page is a single self-contained `.html` file with inline `<style>` and inline `<script>`.
+
+The backend half of the system (Supabase migrations + Edge Functions) lives under `supabase/`. **`docs/PRODUCTION.md` is the runbook**: live URLs, the Canva/Google account-switch procedure, and day-to-day ops.
 
 ## Running locally
 
@@ -20,7 +22,15 @@ There is no lint, test, or build command — verify changes by loading the page 
 
 - **`vandb-redesign.html`** — the main marketing landing page (hero, concept, product tabs, events, gallery, find-a-bar, newsletter). Pure front-end, no backend calls. Product/event content is hardcoded HTML, not data-driven.
 - **`menu.html`** — displays the daily menu as page images pulled from Supabase Storage, driven by a `menu_meta` table (`id=1`, columns `page_count`, `updated_at`). Renders one tab per page, with a lightbox for zoom. Falls back to distinct loading/error/empty states depending on query result.
-- **`reservation.html`** — table reservation form backed by Supabase (see below). On success, generates a client-side "Add to Google Calendar" link (`calendar.google.com/calendar/render`) — this is **not** a real calendar sync, it only adds the event for whoever clicks it.
+- **`reservation.html`** — table reservation form backed by Supabase (see below). Submitting inserts a row; a Postgres trigger then pushes the booking to the bar's Google Calendar and Google Sheet server-side (see "Integrations"). The page itself makes no Google calls.
+
+The **official V and B St-Memmie logo** ships as two PNGs in `Pics/`: `logo-vandb-stmemmie.png` (black, for light backgrounds) and `logo-vandb-stmemmie-blanc.png` (reversed, for dark ones). Both are 715×692 with a transparent background.
+
+Two files rather than one because **the artwork is a bitmap, not vector** — it came as a PDF-export SVG that was really a 715×676 PNG behind a mask, so it can't be recoloured in CSS. 715px is roughly 10× the largest on-page use, so it stays sharp on Retina; don't scale any instance past ~110px tall. The nav carries both files and swaps them with `display` on `.nav.solid` (`.vb-on-dark` / `.vb-on-light`).
+
+The logo already contains "ST-MEMMIE", so pages must not add a separate locality label next to it — and it needs ~68px of height for that line to stay legible, which is why `.nav` padding was reduced to `.9rem` to keep the bar from growing.
+
+Local social links (Instagram `vandb_stmemmie`, Facebook `VandBStMemmie`) appear on all three pages — **not** the national V and B accounts.
 
 All three pages share the same design tokens (CSS custom properties for color/font — `--bg`, `--dark`, `--yellow` (`#E8A800`), `--red` (`#C5142B`), fonts `Bebas Neue` / `Playfair Display` / `Inter`) but each redeclares them locally rather than importing a shared stylesheet. When changing brand colors/fonts, update all three files.
 
@@ -34,6 +44,20 @@ Known schema (from prior work, verify with `list_tables` before relying on it):
 - **`get_availability(p_date)`** — security-definer RPC used by the reservation form to show remaining covers without exposing other customers' rows.
 - **`menu_meta`** — single-row-per-menu metadata (`page_count`, `updated_at`) read by `menu.html`.
 - Menu page images live in Supabase Storage at `menu/page-{n}.png`, fetched as `{SUPABASE_URL}/storage/v1/object/public/menu/page-{n}.png?v={updated_at}` for cache-busting.
+- **`canva_oauth` / `google_calendar_oauth`** — single-row config + OAuth token tables. RLS enabled with *no* policies on purpose: only the service-role Edge Functions can touch them.
+
+Schema changes go in a new dated file under `supabase/migrations/` — never edit an applied one.
+
+## Integrations (Supabase Edge Functions)
+
+All five functions run with `verify_jwt = false` and authenticate themselves. Source of truth is `supabase/functions/`; redeploy from there after editing.
+
+- **`canva-menu-sync`** — cron (`canva-menu-sync-every-15-min`, via `pg_cron` + `pg_net`), auth by `x-sync-secret`. Exports the Canva menu design to PNG and uploads it to Storage, but only when the design's `updated_at` actually changed.
+- **`canva-menu-sync-public`** — same job, triggered by `menu.html` on load so an edit shows up immediately. Publicly reachable, 10 s cooldown, CORS pinned to the Netlify origin — **update that origin if the site moves to a custom domain**.
+- **`reservation-calendar-sync`** — called by the `notify_reservation_created` trigger. Creates the Calendar event, then appends to the Sheet at a row number claimed atomically via `claim_next_sheet_row()`. Creates the spreadsheet on first use if `spreadsheet_id` is null. Failures land in `reservations.calendar_sync_error`, which is the only monitoring signal the system has.
+- **`canva-oauth-callback` / `google-oauth-callback`** — OAuth code exchange. Start a (re)connection with `scripts/oauth-connect.py <google|canva> --client-id ...`.
+
+Canva refresh tokens are single-use (persist the new one on every refresh); Google's are not. Don't swap that handling between the two.
 
 **Because the anon key has INSERT-only rights on `reservations`, any admin/manager-facing view (e.g. a list of upcoming bookings) needs a new read path — a scoped RPC or a service-role-backed endpoint — not a direct table `SELECT` from the client.**
 

@@ -33,8 +33,15 @@
       width: 100%; max-width: 480px; background: var(--bg); color: var(--text);
       border-radius: 10px; padding: 2.75rem 2.25rem; box-shadow: 0 30px 80px rgba(0,0,0,.5);
     }
-    .brand { font-family: var(--fd); font-size: 1.9rem; letter-spacing: .04em; margin-bottom: .35rem; }
-    .brand b { color: var(--red); font-weight: 400; }
+    .vb-mark { height: 68px; width: auto; display: block; margin-bottom: 1.4rem; }
+    .socials { display: flex; justify-content: center; gap: .5rem; margin-top: 1.75rem; }
+    .soc {
+      width: 34px; height: 34px; border-radius: var(--r); display: flex; align-items: center; justify-content: center;
+      color: var(--muted); border: 1px solid currentColor; opacity: .55;
+      transition: opacity .2s, color .2s;
+    }
+    .soc:hover { opacity: 1; color: var(--red); }
+    .soc svg { width: 15px; height: 15px; }
     h1 { font-family: var(--fs); font-style: italic; font-weight: 600; font-size: 1.5rem; margin-bottom: 1.75rem; color: var(--muted); }
     label { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .4rem; }
     .field { margin-bottom: 1.15rem; }
@@ -75,7 +82,7 @@
 </head>
 <body>
   <div class="card">
-    <div class="brand">V<b>AND</b>B</div>
+    <a href="vandb-redesign.html" aria-label="Accueil V and B St-Memmie"><img class="vb-mark" src="Pics/logo-vandb-stmemmie.png" alt="V and B St-Memmie" width="715" height="692" /></a>
 
     <div id="form-view">
       <h1>Réserver une table</h1>
@@ -130,6 +137,15 @@
       <h2>Réservation confirmée</h2>
       <p id="success-detail"></p>
     </div>
+
+    <p style="text-align:center;margin-top:1.5rem;font-size:.82rem;">
+      <a href="menu.html" style="color:var(--muted);text-decoration:underline;">Voir le menu du jour</a>
+    </p>
+
+    <nav class="socials" aria-label="Réseaux sociaux">
+      <a href="https://www.instagram.com/vandb_stmemmie/" class="soc" aria-label="Instagram V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+      <a href="https://www.facebook.com/VandBStMemmie" class="soc" aria-label="Facebook V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
+    </nav>
   </div>
 
   <script>
