@@ -261,7 +261,13 @@ Autres points d'exploitation :
 
 ## E. Déployer un changement
 
-- **Site** : Netlify déploie automatiquement à chaque push sur la branche liée.
+- **Site** : Netlify déploie à chaque push sur la branche de production, **à condition
+  que le site soit relié au dépôt GitHub** (*Site configuration → Build & deploy →
+  Continuous deployment*). S'il ne l'est pas, le site a été déposé à la main et
+  fusionner une PR ne change rien en ligne — c'est un piège qui coûte cher en
+  temps de diagnostic. Branche de production : `master`. Pas de commande de
+  build, répertoire publié : la racine. Ces réglages sont dans `netlify.toml`,
+  qui fait autorité sur l'interface.
 - **Edge Functions** : le dépôt fait foi. Redéployer une function depuis
   `supabase/functions/<nom>/index.ts` (Supabase CLI ou tooling MCP). Ces
   functions tournent en `verify_jwt = false` : elles s'authentifient elles-mêmes
