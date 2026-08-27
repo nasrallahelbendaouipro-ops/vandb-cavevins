@@ -50,14 +50,28 @@
     /* ── Nav ── */
     .nav {
       position: fixed; inset: 0 0 auto 0; z-index: 900;
-      padding: 1.25rem 0; transition: background .3s, box-shadow .3s;
+      padding: .9rem 0; transition: background .3s, box-shadow .3s;
     }
     .nav.solid { background: var(--white); box-shadow: 0 1px 0 var(--border); }
     .nav-inner { display: flex; align-items: center; justify-content: space-between; }
-    .logo { font-family: var(--fd); font-size: 2.1rem; letter-spacing: .04em; color: var(--white); transition: color .3s; }
-    .logo b { color: var(--yellow); font-weight: 400; }
-    .nav.solid .logo { color: var(--text); }
-    .nav.solid .logo b { color: var(--red); }
+    .brand-lock { display: block; }
+    .vb-mark { height: 70px; width: auto; display: block; }
+    /* The logo carries "ST-MEMMIE" itself, so the nav shows it whole rather
+       than pairing a mark with a separate locality label. Two files instead of
+       one: the artwork is a bitmap, so it can't be recoloured in CSS the way a
+       vector could. */
+    .nav .vb-on-light { display: none; }
+    .nav.solid .vb-on-dark { display: none; }
+    .nav.solid .vb-on-light { display: block; }
+    .nav-socials { display: flex; gap: .4rem; margin-right: .35rem; }
+    .nav-soc {
+      width: 34px; height: 34px; border-radius: var(--r); display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.22); transition: color .2s, border-color .2s;
+    }
+    .nav-soc:hover { color: var(--yellow); border-color: var(--yellow); }
+    .nav-soc svg { width: 15px; height: 15px; }
+    .nav.solid .nav-soc { color: var(--muted); border-color: var(--border); }
+    .nav.solid .nav-soc:hover { color: var(--red); border-color: var(--red); }
     .nav-links { display: flex; gap: 2.5rem; }
     .nav-links a {
       font-size: .76rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
@@ -239,8 +253,8 @@
     /* ── Footer ── */
     .footer { background:#0A0908; padding:4rem 0 2rem; }
     .footer-top { display:grid; grid-template-columns:1.6fr repeat(3,1fr); gap:3rem; margin-bottom:3rem; }
-    .f-logo { font-family:var(--fd); font-size:2rem; letter-spacing:.05em; color:var(--white); margin-bottom:.75rem; }
-    .f-logo b { color:var(--yellow); font-weight:400; }
+    .f-logo { margin-bottom:1rem; }
+    .vb-full { height:110px; width:auto; display:block; }
     .footer-brand p { font-size:.875rem; color:rgba(255,255,255,.38); line-height:1.7; max-width:260px; }
     .f-socials { display:flex; gap:.5rem; margin-top:1.5rem; }
     .f-soc { width:36px; height:36px; border:1px solid rgba(255,255,255,.1); border-radius:var(--r); display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.38); transition:color .2s, border-color .2s; }
@@ -280,6 +294,8 @@
       .footer-top { grid-template-columns:1fr; }
     }
     @media(max-width:640px){
+      .nav-socials { display:none; }
+      .vb-mark { height:56px; }
       .prod-grid { grid-template-columns:repeat(2,1fr); }
       .hero-h1 { font-size:clamp(3rem,14vw,6rem); }
       .promo { height:420px; }
@@ -294,16 +310,24 @@
 <nav class="nav" id="nav">
   <div class="wrap">
     <div class="nav-inner">
-      <a href="#" class="logo">V<b>&</b>B</a>
+      <a href="#" class="brand-lock">
+        <img class="vb-mark vb-on-dark" src="Pics/logo-vandb-stmemmie-blanc.png" alt="V and B St-Memmie" width="715" height="692" />
+        <img class="vb-mark vb-on-light" src="Pics/logo-vandb-stmemmie.png" alt="" aria-hidden="true" width="715" height="692" />
+      </a>
       <ul class="nav-links">
         <li><a href="#concept">Le Concept</a></li>
         <li><a href="#produits">Sélections</a></li>
+        <li><a href="menu.html">Menu</a></li>
         <li><a href="#evenements">Événements</a></li>
         <li><a href="#trouver">Nos Bars</a></li>
         <li><a href="#tireuse">Tireuse</a></li>
       </ul>
       <div class="nav-cta">
-        <a href="#trouver" class="btn btn-ghost" id="nbtn" style="font-size:.72rem;">Trouver un bar</a>
+        <nav class="nav-socials" aria-label="Réseaux sociaux">
+          <a href="https://www.instagram.com/vandb_stmemmie/" class="nav-soc" aria-label="Instagram V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          <a href="https://www.facebook.com/VandBStMemmie" class="nav-soc" aria-label="Facebook V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
+        </nav>
+        <a href="reservation.html" class="btn btn-ghost" id="nbtn" style="font-size:.72rem;">Réserver</a>
         <a href="#" class="btn btn-yellow" style="font-size:.72rem;">E-shop</a>
       </div>
     </div>
@@ -548,7 +572,7 @@
         <p class="tap-sub">Location de tireuse à bière professionnelle pour mariages, anniversaires et événements d'entreprise. Livraison, installation et formation incluses.</p>
       </div>
       <div class="tap-actions">
-        <a href="#" class="btn btn-yellow">Réserver maintenant</a>
+        <a href="reservation.html" class="btn btn-yellow">Réserver maintenant</a>
         <a href="#" class="btn btn-ghost">En savoir plus</a>
       </div>
     </div>
@@ -602,20 +626,19 @@
   <div class="wrap">
     <div class="footer-top">
       <div class="footer-brand">
-        <div class="f-logo">V<b>&</b>B</div>
+        <div class="f-logo"><img class="vb-full" src="Pics/logo-vandb-stmemmie-blanc.png" alt="V and B St-Memmie" width="715" height="692" /></div>
         <p>Cave &amp; Bar — Partageur de bons moments depuis 1994. Plus de 300 établissements à travers toute la France.</p>
-        <nav class="f-socials">
-          <a href="https://www.instagram.com/vandb_officiel/" class="f-soc" aria-label="Instagram" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
-          <a href="https://www.facebook.com/vandb" class="f-soc" aria-label="Facebook" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
-          <a href="https://www.tiktok.com/@vandb" class="f-soc" aria-label="TikTok" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V9.43a8.16 8.16 0 004.77 1.52V7.5a4.85 4.85 0 01-1.01-.81z"/></svg></a>
+        <nav class="f-socials" aria-label="Réseaux sociaux">
+          <a href="https://www.instagram.com/vandb_stmemmie/" class="f-soc" aria-label="Instagram V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          <a href="https://www.facebook.com/VandBStMemmie" class="f-soc" aria-label="Facebook V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
         </nav>
       </div>
-      <div><div class="f-col-title">Explorer</div><ul class="f-links"><li><a href="#concept">Notre concept</a></li><li><a href="#produits">Bières &amp; Vins</a></li><li><a href="#evenements">Événements</a></li><li><a href="#">E-shop</a></li></ul></div>
+      <div><div class="f-col-title">Explorer</div><ul class="f-links"><li><a href="reservation.html">Réserver une table</a></li><li><a href="menu.html">Le menu</a></li><li><a href="#concept">Notre concept</a></li><li><a href="#produits">Bières &amp; Vins</a></li><li><a href="#evenements">Événements</a></li><li><a href="#">E-shop</a></li></ul></div>
       <div><div class="f-col-title">Services</div><ul class="f-links"><li><a href="#tireuse">Location tireuse</a></li><li><a href="#">Bouteille personnalisée</a></li><li><a href="#">Click &amp; Collect</a></li><li><a href="#">Séminaires</a></li></ul></div>
       <div><div class="f-col-title">Infos</div><ul class="f-links"><li><a href="#">Qui sommes-nous ?</a></li><li><a href="#">Franchise V and B</a></li><li><a href="#">Blog</a></li><li><a href="#">Recrutement</a></li><li><a href="#">Contact</a></li></ul></div>
     </div>
     <div class="footer-bottom">
-      <p class="footer-copy">© 2025 V and B — Tous droits réservés.</p>
+      <p class="footer-copy">© 2026 V and B St-Memmie — Tous droits réservés.</p>
       <nav class="footer-legal"><a href="#">Mentions légales</a><a href="#">CGV</a><a href="#">Politique de confidentialité</a><a href="#">Cookies</a></nav>
     </div>
   </div>
