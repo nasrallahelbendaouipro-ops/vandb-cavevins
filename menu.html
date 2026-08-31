@@ -82,6 +82,61 @@
       letter-spacing: .03em;
     }
 
+    /* ── Agenda du mois ── */
+    .agenda { margin-top: 3rem; border-top: 1px solid rgba(255,255,255,.1); padding-top: 2rem; }
+    .agenda-head { text-align: center; margin-bottom: 1.5rem; }
+    .agenda-eyebrow {
+      font-size: .64rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+      color: var(--yellow); margin-bottom: .3rem;
+    }
+    .agenda-month { font-family: var(--fd); font-size: 2rem; letter-spacing: .04em; line-height: 1; }
+
+    .agenda-highlight {
+      border: 1px solid rgba(232,168,0,.45); border-radius: 8px;
+      padding: .9rem 1.1rem; margin-bottom: 1.25rem; background: rgba(232,168,0,.07);
+    }
+    .agenda-highlight h3 { font-size: .92rem; font-weight: 700; color: var(--yellow); margin-bottom: .2rem; }
+    .agenda-highlight .when { font-size: .84rem; font-weight: 600; margin-bottom: .35rem; }
+    .agenda-highlight li { font-size: .82rem; color: rgba(255,255,255,.72); line-height: 1.55; }
+
+    /* Une colonne sur téléphone — la page est surtout ouverte depuis le QR
+       code des tables — puis deux dès qu'il y a la place. */
+    .agenda-list { display: grid; grid-template-columns: 1fr; gap: .8rem; }
+    @media (min-width: 560px) { .agenda-list { grid-template-columns: 1fr 1fr; } }
+
+    .ag-card {
+      border: 1px solid rgba(255,255,255,.12); border-radius: 8px;
+      padding: .9rem 1.05rem; background: rgba(255,255,255,.03);
+    }
+    .ag-when {
+      font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--yellow); margin-bottom: .15rem;
+    }
+    .ag-note { font-weight: 500; letter-spacing: .04em; text-transform: none; opacity: .75; }
+    .ag-time { font-size: .78rem; font-weight: 600; color: rgba(255,255,255,.85); margin-bottom: .3rem; }
+    .ag-title {
+      font-family: var(--fs); font-style: italic; font-weight: 600;
+      font-size: 1.08rem; margin-bottom: .4rem; line-height: 1.25;
+    }
+    .ag-lines { list-style: none; }
+    .ag-lines li {
+      font-size: .83rem; color: rgba(255,255,255,.7); line-height: 1.55;
+      padding-left: .85rem; position: relative;
+    }
+    .ag-lines li::before {
+      content: ''; position: absolute; left: 0; top: .62em;
+      width: 4px; height: 4px; border-radius: 50%; background: var(--red);
+    }
+
+    .agenda-poster {
+      display: inline-flex; align-items: center; gap: .45rem; margin-top: 1.25rem;
+      font-size: .74rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--yellow); text-decoration: none;
+      border: 1px solid rgba(232,168,0,.4); border-radius: var(--r); padding: .55rem .9rem;
+    }
+    .agenda-poster:hover { background: rgba(232,168,0,.12); }
+    .agenda-foot { text-align: center; }
+
     .lightbox {
       position: fixed; inset: 0; background: rgba(0,0,0,.92); display: none;
       align-items: center; justify-content: center; padding: 1rem; z-index: 20; cursor: zoom-out;
@@ -119,6 +174,16 @@
       <div id="panels"></div>
       <p id="updated" class="updated"></p>
     </div>
+    <section id="agenda" class="agenda hidden" aria-labelledby="agenda-month">
+      <div class="agenda-head">
+        <p class="agenda-eyebrow">L'agenda du mois</p>
+        <h2 class="agenda-month" id="agenda-month"></h2>
+      </div>
+      <div id="agenda-highlight"></div>
+      <div id="agenda-list" class="agenda-list"></div>
+      <p class="agenda-foot"><a id="agenda-poster" class="agenda-poster hidden" target="_blank" rel="noopener">Voir l'affiche du mois</a></p>
+    </section>
+
     <nav class="socials" aria-label="Réseaux sociaux">
       <a href="https://www.instagram.com/vandb_stmemmie/" class="soc" aria-label="Instagram V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
       <a href="https://www.facebook.com/VandBStMemmie" class="soc" aria-label="Facebook V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
@@ -250,7 +315,72 @@
       renderMenu(data.page_count, data.updated_at, data.page_titles);
     }
 
+    // ── Agenda du mois ─────────────────────────────────────────────
+    // Alimenté par la table agenda_meta, sans aucun rapport avec la synchro
+    // Canva du menu. La section reste masquée si la requête échoue ou si le
+    // mois est vide : l'agenda est un complément, son absence ne doit pas
+    // abîmer la page du menu.
+    function el(tag, cls, text) {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text) n.textContent = text;
+      return n;
+    }
+
+    function renderLines(lines) {
+      const ul = el('ul', 'ag-lines');
+      (lines || []).forEach(l => ul.appendChild(el('li', null, l)));
+      return ul;
+    }
+
+    async function loadAgenda() {
+      const { data, error } = await sb
+        .from('agenda_meta')
+        .select('month_label, highlight, events, poster_path')
+        .eq('id', 1)
+        .single();
+
+      if (error || !data || !Array.isArray(data.events) || data.events.length === 0) return;
+
+      document.getElementById('agenda-month').textContent = data.month_label || '';
+
+      const h = data.highlight;
+      if (h && h.title) {
+        const box = el('div', 'agenda-highlight');
+        box.appendChild(el('h3', null, h.title));
+        if (h.when) box.appendChild(el('p', 'when', h.when));
+        box.appendChild(renderLines(h.lines));
+        document.getElementById('agenda-highlight').appendChild(box);
+      }
+
+      const list = document.getElementById('agenda-list');
+      data.events.forEach(ev => {
+        const card = el('article', 'ag-card');
+        const when = el('p', 'ag-when', ev.when || '');
+        // La note (« à partir du 14 septembre ») reste dans la même ligne que
+        // la date, mais sans la casse ni l'interlettrage de l'étiquette.
+        if (ev.note) {
+          when.appendChild(document.createTextNode(' '));
+          when.appendChild(el('span', 'ag-note', '(' + ev.note + ')'));
+        }
+        card.appendChild(when);
+        if (ev.time) card.appendChild(el('p', 'ag-time', ev.time));
+        card.appendChild(el('h3', 'ag-title', ev.title || ''));
+        if (ev.lines && ev.lines.length) card.appendChild(renderLines(ev.lines));
+        list.appendChild(card);
+      });
+
+      if (data.poster_path) {
+        const a = document.getElementById('agenda-poster');
+        a.href = data.poster_path;
+        a.classList.remove('hidden');
+      }
+
+      document.getElementById('agenda').classList.remove('hidden');
+    }
+
     loadMenu();
+    loadAgenda();
   </script>
 </body>
 </html>

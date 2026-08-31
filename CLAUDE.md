@@ -21,7 +21,7 @@ There is no lint, test, or build command — verify changes by loading the page 
 ## Pages
 
 - **`vandb-redesign.html`** — the main marketing landing page (hero, concept, product tabs, events, gallery, find-a-bar, newsletter). Pure front-end, no backend calls. Product/event content is hardcoded HTML, not data-driven.
-- **`menu.html`** — displays the daily menu as page images pulled from Supabase Storage, driven by a `menu_meta` table (`id=1`, columns `page_count`, `updated_at`). Renders one tab per page, with a lightbox for zoom. Falls back to distinct loading/error/empty states depending on query result.
+- **`menu.html`** — displays the daily menu as page images pulled from Supabase Storage, driven by a `menu_meta` table (`id=1`, columns `page_count`, `updated_at`). Renders one tab per page, with a lightbox for zoom. Falls back to distinct loading/error/empty states depending on query result. Below the menu it also renders **the month's agenda** from `agenda_meta` — real responsive text rather than the poster image, because this page is mostly opened on a phone from the QR code on the tables, where a dense landscape poster is unreadable without pinch-zooming.
 - **`reservation.html`** — table reservation form backed by Supabase (see below). Submitting inserts a row; a Postgres trigger then pushes the booking to the bar's Google Calendar and Google Sheet server-side (see "Integrations"). The page itself makes no Google calls.
 
 The **official V and B St-Memmie logo** ships as two PNGs in `Pics/`: `logo-vandb-stmemmie.png` (black, for light backgrounds) and `logo-vandb-stmemmie-blanc.png` (reversed, for dark ones). Both are 715×692 with a transparent background.
@@ -43,6 +43,7 @@ Known schema (from prior work, verify with `list_tables` before relying on it):
 - **`capacity_overrides`** — opt-in per-date cover cap. A date with **no row here has no limit at all** — the managers decide the maximum, not the site. `get_availability` then returns `max_covers`/`remaining` as `null`, which `reservation.html` reads as "show no counter". The anti-spam rate limit is independent and always applies.
 - **`get_availability(p_date)`** — security-definer RPC used by the reservation form to show remaining covers without exposing other customers' rows.
 - **`menu_meta`** — single-row-per-menu metadata (`page_count`, `updated_at`) read by `menu.html`.
+- **`agenda_meta`** — single row holding the month's events as JSONB, read by `menu.html` and rendered as the agenda section **below** the menu. Nothing to do with the Canva sync: it is edited by hand, one `UPDATE` per month (see `docs/PRODUCTION.md`). Empty `events` or a failed query leaves the section hidden rather than showing an empty block. The poster itself is a static file in `agenda/`, served by Netlify — the `agenda` Storage bucket exists but is unused, since writing to it would need the service-role key.
 - Menu page images live in Supabase Storage at `menu/page-{n}.png`, fetched as `{SUPABASE_URL}/storage/v1/object/public/menu/page-{n}.png?v={updated_at}` for cache-busting.
 - **`canva_oauth` / `google_calendar_oauth`** — single-row config + OAuth token tables. RLS enabled with *no* policies on purpose: only the service-role Edge Functions can touch them.
 

@@ -248,6 +248,30 @@ Autres points d'exploitation :
   couverts. Le garde-fou anti-spam (`check_reservation_rate_limit`) reste actif
   dans tous les cas : il est indépendant du plafond.
 - **Cron menu** : job `canva-menu-sync-every-15-min`, visible via `select * from cron.job;`
+- **Agenda du mois** : affiché sous le menu, alimenté par la table `agenda_meta`
+  — **rien à voir avec la synchro Canva**. Une ligne unique, un `UPDATE` par mois.
+
+  Procédure quand le gérant envoie la nouvelle affiche :
+
+  1. Déposer le fichier dans `agenda/` du dépôt (ex. `agenda/agenda-octobre-2026.pdf`)
+     et pousser — Netlify le sert directement. Un PNG ou JPG est préférable à un
+     PDF : il pourra être prévisualisé dans la page plutôt que juste lié.
+  2. Remplacer le contenu :
+
+  ```sql
+  update agenda_meta
+     set month_label = 'Octobre 2026',
+         highlight   = null,   -- ou jsonb_build_object('title',…,'when',…,'lines',…)
+         events      = '[…]'::jsonb,
+         poster_path = 'agenda/agenda-octobre-2026.pdf',
+         updated_at  = now()
+   where id = 1;
+  ```
+
+  Forme d'un évènement : `{when, note?, time?, title, lines[]}`. `when` est
+  l'étiquette de date, `note` la précision entre parenthèses, `time` l'horaire.
+  Si `events` est vide ou si la requête échoue, la section reste **masquée** —
+  l'agenda est un complément, son absence n'abîme pas la page du menu.
 - **Rien ne notifie l'équipe d'une nouvelle réservation** en dehors de l'agenda
   et du tableur : pas d'e-mail ni de SMS. Le texte de confirmation de
   `reservation.html` mentionne qu'un SMS « peut » être envoyé — aucun envoi n'est
