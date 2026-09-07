@@ -128,14 +128,15 @@
       width: 4px; height: 4px; border-radius: 50%; background: var(--red);
     }
 
+    .agenda-poster-wrap { margin-top: 1.5rem; text-align: center; }
     .agenda-poster {
-      display: inline-flex; align-items: center; gap: .45rem; margin-top: 1.25rem;
-      font-size: .74rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
-      color: var(--yellow); text-decoration: none;
-      border: 1px solid rgba(232,168,0,.4); border-radius: var(--r); padding: .55rem .9rem;
+      width: 100%; max-width: 460px; display: block; margin: 0 auto;
+      border-radius: 8px; cursor: zoom-in; box-shadow: 0 20px 60px rgba(0,0,0,.4);
     }
-    .agenda-poster:hover { background: rgba(232,168,0,.12); }
-    .agenda-foot { text-align: center; }
+    .agenda-poster-label {
+      display: block; margin-top: .6rem; font-size: .7rem; color: var(--muted);
+      letter-spacing: .06em;
+    }
 
     .lightbox {
       position: fixed; inset: 0; background: rgba(0,0,0,.92); display: none;
@@ -181,7 +182,10 @@
       </div>
       <div id="agenda-highlight"></div>
       <div id="agenda-list" class="agenda-list"></div>
-      <p class="agenda-foot"><a id="agenda-poster" class="agenda-poster hidden" target="_blank" rel="noopener">Voir l'affiche du mois</a></p>
+      <div id="agenda-poster-wrap" class="agenda-poster-wrap hidden">
+        <img id="agenda-poster" class="agenda-poster" alt="" loading="lazy" />
+        <span class="agenda-poster-label">Toucher l'affiche pour l'agrandir</span>
+      </div>
     </section>
 
     <nav class="socials" aria-label="Réseaux sociaux">
@@ -371,9 +375,16 @@
       });
 
       if (data.poster_path) {
-        const a = document.getElementById('agenda-poster');
-        a.href = data.poster_path;
-        a.classList.remove('hidden');
+        const img = document.getElementById('agenda-poster');
+        img.src = data.poster_path;
+        img.alt = 'Agenda ' + (data.month_label || '');
+        img.addEventListener('click', () => openLightbox(img.src));
+        // Une affiche introuvable ne doit pas laisser une image cassée sous
+        // l'agenda : le texte se suffit à lui-même.
+        img.addEventListener('error', () => {
+          document.getElementById('agenda-poster-wrap').classList.add('hidden');
+        });
+        document.getElementById('agenda-poster-wrap').classList.remove('hidden');
       }
 
       document.getElementById('agenda').classList.remove('hidden');
