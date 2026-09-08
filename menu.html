@@ -375,6 +375,20 @@
       return ul;
     }
 
+    // L'agenda est transcrit à la main chaque mois : si personne ne le met à
+    // jour, la page continue d'annoncer les évènements du mois précédent —
+    // pire qu'un agenda absent. On compare donc month_label au mois courant.
+    // La comparaison est volontairement tolérante (on cherche le nom du mois
+    // et l'année dans le libellé, accents ignorés) pour ne pas masquer un
+    // agenda valide dont le libellé serait formulé autrement.
+    function agendaEstAJour(label) {
+      if (!label) return false;
+      const sansAccents = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const now = new Date();
+      const mois = sansAccents(now.toLocaleDateString('fr-FR', { month: 'long' }));
+      return sansAccents(label).includes(mois) && label.includes(String(now.getFullYear()));
+    }
+
     async function loadAgenda() {
       const { data, error } = await sb
         .from('agenda_meta')
@@ -383,6 +397,10 @@
         .single();
 
       if (error || !data || !Array.isArray(data.events) || data.events.length === 0) return;
+
+      // La section reste masquée (elle part avec la classe `hidden`) : mieux
+      // vaut pas d'agenda du tout qu'un agenda périmé.
+      if (!agendaEstAJour(data.month_label)) return;
 
       document.getElementById('agenda-month').textContent = data.month_label || '';
 
