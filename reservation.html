@@ -4,6 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Réserver — V and B</title>
+  <meta name="description" content="Réservez votre table chez V and B St-Memmie en quelques secondes : choisissez la date, l'heure et le nombre de personnes." />
+  <link rel="canonical" href="https://vandb-cavevins.netlify.app/reservation.html" />
+  <link rel="icon" href="Pics/logo-vandb-stmemmie.png" />
+  <link rel="apple-touch-icon" href="Pics/logo-vandb-stmemmie.png" />
+  <meta name="theme-color" content="#111010" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="V and B St-Memmie" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:title" content="Réserver une table — V and B St-Memmie" />
+  <meta property="og:description" content="Réservez votre table chez V and B St-Memmie en quelques secondes : choisissez la date, l'heure et le nombre de personnes." />
+  <meta property="og:url" content="https://vandb-cavevins.netlify.app/reservation.html" />
+  <meta property="og:image" content="https://vandb-cavevins.netlify.app/Pics/IMG_7565.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400;1,600&display=swap" rel="stylesheet" />
@@ -90,16 +103,16 @@
       <form id="res-form">
         <div class="field">
           <label for="name">Nom</label>
-          <input id="name" type="text" required autocomplete="name" />
+          <input id="name" type="text" required maxlength="120" autocomplete="name" />
         </div>
         <div class="row">
           <div class="field">
             <label for="phone">Téléphone</label>
-            <input id="phone" type="tel" required autocomplete="tel" />
+            <input id="phone" type="tel" required maxlength="30" autocomplete="tel" />
           </div>
           <div class="field">
             <label for="email">Email (optionnel)</label>
-            <input id="email" type="email" autocomplete="email" />
+            <input id="email" type="email" maxlength="254" autocomplete="email" />
           </div>
         </div>
         <div class="row">
@@ -112,6 +125,7 @@
             <select id="time" required></select>
           </div>
         </div>
+        <div id="closed-note" class="avail full" style="display:none;"></div>
         <div class="field">
           <label for="party">Nombre de personnes</label>
           <input id="party" type="number" min="1" max="30" value="2" required />
@@ -119,7 +133,7 @@
         </div>
         <div class="field">
           <label for="notes">Notes (optionnel)</label>
-          <textarea id="notes" rows="2"></textarea>
+          <textarea id="notes" rows="2" maxlength="500"></textarea>
         </div>
         <div style="position:absolute; left:-9999px; opacity:0; height:0; overflow:hidden;" aria-hidden="true">
           <label for="website">Site web</label>
@@ -161,19 +175,71 @@
     const submitBtn = document.getElementById('submit-btn');
     const form = document.getElementById('res-form');
 
-    const todayISO = new Date().toISOString().slice(0, 10);
+    const closedNote = document.getElementById('closed-note');
+
+    // Horaires réels du bar : dimanche fermé, lundi 12:00–22:00,
+    // mardi à samedi 10:00–22:00. Le dernier créneau réservable est fixé une
+    // heure avant la fermeture. Ces valeurs doublent la contrainte
+    // reservations_opening_hours en base : si l'une change, changer l'autre.
+    const LAST_SLOT_MIN = 21 * 60;
+    const OPENING_MIN = { 0: null, 1: 12 * 60, 2: 600, 3: 600, 4: 600, 5: 600, 6: 600 };
+
+    // toISOString() renvoie une date UTC : passé 22 h en heure d'été elle
+    // désigne encore la veille. On formate donc la date en heure locale.
+    function localISO(d) {
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+
+    const todayISO = localISO(new Date());
     dateInput.min = todayISO;
     dateInput.value = todayISO;
 
-    for (let h = 11; h <= 23; h++) {
-      for (const m of [0, 30]) {
-        if (h === 23 && m === 30) continue;
-        const label = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    function setClosed(message) {
+      closedNote.textContent = message;
+      closedNote.style.display = 'block';
+      timeSelect.disabled = true;
+      submitBtn.disabled = true;
+    }
+
+    function buildSlots() {
+      const value = dateInput.value;
+      const previous = timeSelect.value;
+      timeSelect.innerHTML = '';
+      if (!value) return;
+
+      // Date construite en local : new Date('2026-09-13') serait interprété
+      // en UTC et pourrait désigner le jour précédent.
+      const [y, mo, d] = value.split('-').map(Number);
+      const opening = OPENING_MIN[new Date(y, mo - 1, d).getDay()];
+
+      if (opening === null) {
+        setClosed('Le bar est fermé le dimanche — choisissez un autre jour.');
+        return;
+      }
+
+      // Sur la journée en cours, les créneaux déjà passés sont retirés.
+      const now = new Date();
+      const nowMin = value === localISO(now) ? now.getHours() * 60 + now.getMinutes() : -1;
+
+      for (let min = opening; min <= LAST_SLOT_MIN; min += 30) {
+        if (min <= nowMin) continue;
+        const label = `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
         const opt = document.createElement('option');
         opt.value = `${label}:00`;
         opt.textContent = label;
         timeSelect.appendChild(opt);
       }
+
+      if (!timeSelect.options.length) {
+        setClosed('Plus aucun créneau disponible aujourd’hui — choisissez une autre date.');
+        return;
+      }
+
+      closedNote.style.display = 'none';
+      timeSelect.disabled = false;
+      submitBtn.disabled = false;
+      if (previous) timeSelect.value = previous;
     }
 
     async function refreshAvailability() {
@@ -187,9 +253,9 @@
       const { remaining } = data[0];
       const party = parseInt(partyInput.value || '0', 10);
 
-      // remaining vaut null quand aucun plafond n'est posé sur cette date, ce
-      // qui est le cas par défaut : c'est le responsable qui arbitre le nombre
-      // de couverts, pas le site. On n'affiche alors aucun compteur.
+      // Depuis le plafond par défaut de 150 couverts, remaining est toujours
+      // renseigné. Ce garde-fou ne sert plus que si une version antérieure de
+      // get_availability est encore déployée.
       if (remaining === null) {
         availBox.className = 'avail';
         availBox.textContent = '';
@@ -210,8 +276,9 @@
         availBox.textContent = `${remaining} couverts disponibles pour cette date`;
       }
     }
-    dateInput.addEventListener('change', refreshAvailability);
+    dateInput.addEventListener('change', () => { buildSlots(); refreshAvailability(); });
     partyInput.addEventListener('input', refreshAvailability);
+    buildSlots();
     refreshAvailability();
 
     form.addEventListener('submit', async (e) => {

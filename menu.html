@@ -4,6 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Menu — V and B</title>
+  <meta name="description" content="La carte du jour de V and B St-Memmie : bières pression, vins au verre, planches et cocktails, mise à jour en direct." />
+  <link rel="canonical" href="https://vandb-cavevins.netlify.app/menu.html" />
+  <link rel="icon" href="Pics/logo-vandb-stmemmie.png" />
+  <link rel="apple-touch-icon" href="Pics/logo-vandb-stmemmie.png" />
+  <meta name="theme-color" content="#111010" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="V and B St-Memmie" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:title" content="Le menu — V and B St-Memmie" />
+  <meta property="og:description" content="La carte du jour de V and B St-Memmie : bières pression, vins au verre, planches et cocktails, mise à jour en direct." />
+  <meta property="og:url" content="https://vandb-cavevins.netlify.app/menu.html" />
+  <meta property="og:image" content="https://vandb-cavevins.netlify.app/Pics/IMG_7565.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400;1,600&display=swap" rel="stylesheet" />
@@ -232,22 +245,47 @@
       }
     }
 
+    async function fetchMenuMeta() {
+      const { data, error } = await sb.from('menu_meta')
+        .select('updated_at, page_count, page_titles').eq('id', 1).single();
+      return error ? null : data;
+    }
+
+    let renderedUpdatedAt = null;
+
+    function renderIfUsable(data) {
+      if (!data || !data.page_count || data.page_count < 1) return false;
+      renderedUpdatedAt = data.updated_at;
+      renderMenu(data.page_count, data.updated_at, data.page_titles);
+      return true;
+    }
+
     async function loadMenu() {
       showState(loadingState);
-      await checkCanvaForUpdates();
-      const { data, error } = await sb.from('menu_meta').select('updated_at, page_count, page_titles').eq('id', 1).single();
 
-      if (error || !data) {
+      // La vérification Canva part en parallèle, sans await. Elle peut durer
+      // jusqu'à 20 s : faire attendre le visiteur tout ce temps devant un
+      // spinner, alors que le menu déjà synchronisé est disponible tout de
+      // suite, va contre l'intention « best-effort » de cette vérification.
+      const syncDone = checkCanvaForUpdates();
+
+      const cached = await fetchMenuMeta();
+      if (!cached) {
         showState(errorState);
         return;
       }
 
-      if (!data.page_count || data.page_count < 1) {
-        showState(emptyState);
-        return;
-      }
+      const shown = renderIfUsable(cached);
+      if (!shown) showState(emptyState);
 
-      renderMenu(data.page_count, data.updated_at, data.page_titles);
+      // Une fois la synchro terminée, on ne rafraîchit l'affichage que si elle
+      // a réellement rapporté une nouvelle version — sinon rien ne bouge.
+      syncDone.then(async () => {
+        const fresh = await fetchMenuMeta();
+        if (fresh && fresh.updated_at !== renderedUpdatedAt) {
+          if (!renderIfUsable(fresh) && shown) showState(emptyState);
+        }
+      });
     }
 
     loadMenu();

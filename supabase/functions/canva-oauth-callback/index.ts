@@ -9,6 +9,18 @@ function html(body: string, status = 200) {
   );
 }
 
+// Le contenu injecté ici vient de la query string ou de la réponse brute d'un
+// service tiers. Sans échappement, une URL forgée (...?error=<script>...)
+// exécute du JS arbitraire dans le navigateur de la victime — XSS réfléchie.
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 Deno.serve(async (req) => {
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
@@ -16,7 +28,7 @@ Deno.serve(async (req) => {
   const error = url.searchParams.get("error");
 
   if (error) {
-    return html(`<h1>Authorization failed</h1><p>${error}</p>`, 400);
+    return html(`<h1>Authorization failed</h1><p>${escapeHtml(error)}</p>`, 400);
   }
   if (!code || !state) {
     return html("<h1>Missing code or state</h1>", 400);
@@ -57,7 +69,7 @@ Deno.serve(async (req) => {
 
   if (!tokenResp.ok) {
     const errText = await tokenResp.text();
-    return html(`<h1>Token exchange failed</h1><pre>${errText}</pre>`, 500);
+    return html(`<h1>Token exchange failed</h1><pre>${escapeHtml(errText)}</pre>`, 500);
   }
 
   const tokenData = await tokenResp.json();

@@ -4,9 +4,48 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>V and B — Cave & Bar · Partageur de bons moments</title>
+  <meta name="description" content="Cave à vins, bières et spiritueux doublée d'un bar : plus de 500 références à emporter ou à déguster sur place, soirées, location de tireuse et réservation de table en ligne." />
+  <link rel="canonical" href="https://vandb-cavevins.netlify.app/" />
+  <link rel="icon" href="Pics/logo-vandb-stmemmie.png" />
+  <link rel="apple-touch-icon" href="Pics/logo-vandb-stmemmie.png" />
+  <meta name="theme-color" content="#111010" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="V and B St-Memmie" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta property="og:title" content="V and B St-Memmie — Cave & Bar" />
+  <meta property="og:description" content="Cave à vins, bières et spiritueux doublée d'un bar : plus de 500 références à emporter ou à déguster sur place, soirées, location de tireuse et réservation de table en ligne." />
+  <meta property="og:url" content="https://vandb-cavevins.netlify.app/" />
+  <meta property="og:image" content="https://vandb-cavevins.netlify.app/Pics/IMG_7565.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400;1,600&display=swap" rel="stylesheet" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BarOrPub",
+    "name": "V and B Saint-Memmie",
+    "description": "Cave à vins, bières et spiritueux doublée d'un bar, à Saint-Memmie.",
+    "url": "https://vandb-cavevins.netlify.app/",
+    "image": "https://vandb-cavevins.netlify.app/Pics/IMG_7565.jpg",
+    "telephone": "+33326653155",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "11 Av. Mercuria",
+      "postalCode": "51470",
+      "addressLocality": "Saint-Memmie",
+      "addressCountry": "FR"
+    },
+    "openingHoursSpecification": [
+      { "@type": "OpeningHoursSpecification", "dayOfWeek": "Monday", "opens": "12:00", "closes": "22:00" },
+      { "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        "opens": "10:00", "closes": "22:00" }
+    ],
+    "acceptsReservations": "https://vandb-cavevins.netlify.app/reservation.html",
+    "hasMenu": "https://vandb-cavevins.netlify.app/menu.html"
+  }
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -88,7 +127,8 @@
     .hero { position: relative; height: 100dvh; min-height: 640px; display: flex; align-items: flex-end; overflow: hidden; }
     .hero-bg {
       position: absolute; inset: 0;
-      background: url('Pics/IMG_7565.jpg') center 30% / cover no-repeat;
+      background: -webkit-image-set(url('Pics/webp/full/IMG_7565.webp') type('image/webp'), url('Pics/IMG_7565.jpg') type('image/jpeg')) center 30% / cover no-repeat;
+      background: image-set(url('Pics/webp/full/IMG_7565.webp') type('image/webp'), url('Pics/IMG_7565.jpg') type('image/jpeg')) center 30% / cover no-repeat;
     }
     .hero-veil {
       position: absolute; inset: 0;
@@ -123,6 +163,7 @@
 
     /* ── Concept split ── */
     .concept { display: grid; grid-template-columns: 1fr 1fr; min-height: 680px; }
+    picture { display: contents; }
     .concept-img { position: relative; overflow: hidden; }
     .concept-img img { width:100%; height:100%; object-fit:cover; object-position:center top; transition:transform .8s ease; }
     .concept-img:hover img { transform:scale(1.04); }
@@ -175,7 +216,7 @@
 
     /* ── Promo banner ── */
     .promo { position: relative; height: 520px; display: flex; align-items: center; overflow: hidden; }
-    .promo-bg { position: absolute; inset: 0; background: url('Pics/IMG_7568.jpg') center / cover no-repeat; filter: brightness(.5); }
+    .promo-bg { position: absolute; inset: 0; background: -webkit-image-set(url('Pics/webp/full/IMG_7568.webp') type('image/webp'), url('Pics/IMG_7568.jpg') type('image/jpeg')) center / cover no-repeat; background: image-set(url('Pics/webp/full/IMG_7568.webp') type('image/webp'), url('Pics/IMG_7568.jpg') type('image/jpeg')) center / cover no-repeat; filter: brightness(.5); }
     .promo-veil { position: absolute; inset: 0; background: linear-gradient(to right, rgba(17,16,16,.85) 0%, rgba(17,16,16,.2) 60%, transparent 85%); }
     .promo-body { position: relative; z-index: 2; }
     .promo-badge { display: inline-block; background: var(--yellow); color: var(--text); font-size: .68rem; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; padding: .4rem 1rem; border-radius: 2px; margin-bottom: 1.25rem; }
@@ -224,20 +265,18 @@
     .findus-visual img { width:100%; height:100%; object-fit:cover; }
     .findus-pin { position: absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:54px; height:54px; background:var(--white); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 20px rgba(0,0,0,.2); }
     .findus-pin svg { width: 24px; height: 24px; color: var(--red); }
-    .store-search { display: flex; border: 2px solid var(--text); border-radius: var(--r); overflow: hidden; margin-bottom: 1.5rem; }
-    .store-search input { flex:1; background:none; border:none; outline:none; padding:.9rem 1.25rem; font-family:var(--fb); font-size:.93rem; color:var(--text); }
-    .store-search input::placeholder { color:var(--muted); }
-    .store-search button { background:var(--text); border:none; cursor:pointer; padding:0 1.5rem; color:var(--white); transition:background .2s; }
-    .store-search button:hover { background:var(--red); }
-    .store-search button svg { width:18px; height:18px; display:block; }
-    .stores { display:flex; flex-direction:column; gap:.5rem; }
-    .store-row { display:flex; align-items:center; gap:1.25rem; padding:1rem 1.25rem; border:1px solid var(--border); border-radius:var(--r); cursor:pointer; transition:border-color .2s, background .2s; }
-    .store-row:hover { border-color:var(--yellow); background:var(--white); }
-    .store-dot { width:8px; height:8px; border-radius:50%; background:var(--red); flex-shrink:0; }
-    .store-name { font-size:.9rem; font-weight:600; }
-    .store-addr { font-size:.77rem; color:var(--muted); }
-    .store-arr { margin-left:auto; color:var(--muted); }
-    .store-arr svg { width:16px; height:16px; }
+    .store-card { border:1px solid var(--border); border-radius:var(--r); padding:1.75rem; background:var(--white); }
+    .store-name { font-family:var(--fh); font-size:1.5rem; letter-spacing:.02em; margin-bottom:1.25rem; }
+    .store-line { display:flex; align-items:flex-start; gap:.85rem; margin-bottom:.9rem; font-size:.92rem; line-height:1.5; }
+    .store-line svg { width:17px; height:17px; flex-shrink:0; color:var(--red); margin-top:.15rem; }
+    .store-line a { color:var(--text); text-decoration:none; border-bottom:1px solid var(--border); }
+    .store-line a:hover { border-color:var(--red); color:var(--red); }
+    .hours { margin:1.4rem 0 1.6rem; border-top:1px solid var(--border); padding-top:1.1rem; }
+    .hours-row { display:flex; justify-content:space-between; font-size:.85rem; padding:.28rem 0; }
+    .hours-day { color:var(--muted); text-transform:capitalize; }
+    .hours-time { font-variant-numeric:tabular-nums; }
+    .hours-row.closed .hours-time { color:var(--red); }
+    .store-actions { display:flex; gap:.75rem; flex-wrap:wrap; }
 
     /* ── Newsletter ── */
     .nl { background: var(--dark); padding: 5rem 0; }
@@ -319,7 +358,7 @@
         <li><a href="#produits">Sélections</a></li>
         <li><a href="menu.html">Menu</a></li>
         <li><a href="#evenements">Événements</a></li>
-        <li><a href="#trouver">Nos Bars</a></li>
+        <li><a href="#trouver">Nous trouver</a></li>
         <li><a href="#tireuse">Tireuse</a></li>
       </ul>
       <div class="nav-cta">
@@ -371,7 +410,7 @@
 <!-- CONCEPT -->
 <section id="concept" class="concept">
   <div class="concept-img">
-    <img src="Pics/IMG_7570.jpg" alt="Conseil vins et bières — V and B" loading="lazy" />
+    <picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7570.webp 640w, Pics/webp/w960/IMG_7570.webp 960w, Pics/webp/full/IMG_7570.webp 1173w" sizes="(max-width: 900px) 100vw, 50vw" /><img src="Pics/IMG_7570.jpg" alt="Conseil vins et bières — V and B" loading="lazy" /></picture>
     <div class="concept-stamp">Cave &amp; Bar depuis 1994</div>
   </div>
   <div class="concept-txt">
@@ -385,7 +424,7 @@
       </div>
       <div class="pillar">
         <div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-        <div><strong>Ouvert 7j/7, horaires élargis</strong><span>Toujours là quand vous avez envie de partager</span></div>
+        <div><strong>Ouvert du lundi au samedi</strong><span>10h–22h en semaine, dès 12h le lundi</span></div>
       </div>
       <div class="pillar">
         <div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
@@ -423,19 +462,19 @@
     <div id="p-b" role="tabpanel">
       <div class="prod-grid">
         <article class="prod-card">
-          <div class="prod-img"><img src="Pics/IMG_7569.jpg" alt="Craft beer V and B" loading="lazy" /></div>
+          <div class="prod-img"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7569.webp 640w, Pics/webp/w960/IMG_7569.webp 960w, Pics/webp/full/IMG_7569.webp 1229w" sizes="(max-width: 1024px) 50vw, 25vw" /><img src="Pics/IMG_7569.jpg" alt="Craft beer V and B" loading="lazy" /></picture></div>
           <div class="prod-info"><div class="prod-cat">IPA · Artisanale</div><div class="prod-name">Sélection Craft du Moment</div><div class="prod-foot"><span class="prod-price">6,50€</span><span class="prod-vol">33 cl · 6.2%</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
         </article>
         <article class="prod-card">
-          <div class="prod-img"><img src="Pics/IMG_7568.jpg" alt="Foire à la Bière V and B" loading="lazy" /></div>
+          <div class="prod-img"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7568.webp 640w, Pics/webp/w960/IMG_7568.webp 960w, Pics/webp/full/IMG_7568.webp 1284w" sizes="(max-width: 1024px) 50vw, 25vw" /><img src="Pics/IMG_7568.jpg" alt="Foire à la Bière V and B" loading="lazy" /></picture></div>
           <div class="prod-info"><div class="prod-cat">Promo · −33%</div><div class="prod-name">Brasserie d'Achouffe — Foire</div><div class="prod-foot"><span class="prod-price">3,90€</span><span class="prod-vol">33 cl · 8%</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
         </article>
         <article class="prod-card">
-          <div class="prod-img"><img src="Pics/IMG_7575.jpg" alt="Cave bières V and B" loading="lazy" /></div>
+          <div class="prod-img"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7575.webp 640w, Pics/webp/w960/IMG_7575.webp 960w, Pics/webp/full/IMG_7575.webp 1284w" sizes="(max-width: 1024px) 50vw, 25vw" /><img src="Pics/IMG_7575.jpg" alt="Cave bières V and B" loading="lazy" /></picture></div>
           <div class="prod-info"><div class="prod-cat">Cave · 2000+ références</div><div class="prod-name">Rayon Bières — V and B</div><div class="prod-foot"><span class="prod-price">À partir de 2€</span><span class="prod-vol">33–75 cl</span><button class="prod-plus" aria-label="Voir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div></div>
         </article>
         <article class="prod-card">
-          <div class="prod-img"><img src="Pics/IMG_7566.jpg" alt="Bière et tapas terrasse" loading="lazy" /></div>
+          <div class="prod-img"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7566.webp 640w, Pics/webp/w960/IMG_7566.webp 960w, Pics/webp/full/IMG_7566.webp 1284w" sizes="(max-width: 1024px) 50vw, 25vw" /><img src="Pics/IMG_7566.jpg" alt="Bière et tapas terrasse" loading="lazy" /></picture></div>
           <div class="prod-info"><div class="prod-cat">Terrasse · Bar</div><div class="prod-name">Bière &amp; Planches sur place</div><div class="prod-foot"><span class="prod-price">À partir de 4€</span><span class="prod-vol">25–50 cl</span><button class="prod-plus" aria-label="Voir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div></div>
         </article>
       </div>
@@ -444,19 +483,19 @@
     <div id="p-v" role="tabpanel">
       <div class="prod-grid">
         <article class="prod-card">
-          <div class="prod-img"><img src="Pics/IMG_7574.jpg" alt="Champagne Deville V and B" loading="lazy" /></div>
+          <div class="prod-img"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7574.webp 640w, Pics/webp/w960/IMG_7574.webp 960w, Pics/webp/full/IMG_7574.webp 1141w" sizes="(max-width: 1024px) 50vw, 25vw" /><img src="Pics/IMG_7574.jpg" alt="Champagne Deville V and B" loading="lazy" /></picture></div>
           <div class="prod-info"><div class="prod-cat">Champagne · Prestige</div><div class="prod-name">Champagne Deville Brut NV</div><div class="prod-foot"><span class="prod-price">44,90€</span><span class="prod-vol">75 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
         </article>
         <article class="prod-card">
-          <div class="prod-img"><img src="Pics/IMG_7570.jpg" alt="Palooza Rosé" loading="lazy" /></div>
+          <div class="prod-img"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7570.webp 640w, Pics/webp/w960/IMG_7570.webp 960w, Pics/webp/full/IMG_7570.webp 1173w" sizes="(max-width: 1024px) 50vw, 25vw" /><img src="Pics/IMG_7570.jpg" alt="Palooza Rosé" loading="lazy" /></picture></div>
           <div class="prod-info"><div class="prod-cat">Rosé · Languedoc</div><div class="prod-name">Palooza Création Rosé</div><div class="prod-foot"><span class="prod-price">9,90€</span><span class="prod-vol">75 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
         </article>
         <article class="prod-card">
-          <div class="prod-img"><img src="Pics/IMG_7574.jpg" alt="Vins Bourgogne" loading="lazy" style="object-position:right center;" /></div>
+          <div class="prod-img"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7574.webp 640w, Pics/webp/w960/IMG_7574.webp 960w, Pics/webp/full/IMG_7574.webp 1141w" sizes="(max-width: 1024px) 50vw, 25vw" /><img src="Pics/IMG_7574.jpg" alt="Vins Bourgogne" loading="lazy" style="object-position:right center;" /></picture></div>
           <div class="prod-info"><div class="prod-cat">Blanc · Rhône</div><div class="prod-name">M. Chapoutier Viognier 2024</div><div class="prod-foot"><span class="prod-price">18,50€</span><span class="prod-vol">75 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
         </article>
         <article class="prod-card">
-          <div class="prod-img"><img src="Pics/IMG_7577.jpg" alt="Vins sélection V and B" loading="lazy" /></div>
+          <div class="prod-img"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7577.webp 640w, Pics/webp/w960/IMG_7577.webp 960w, Pics/webp/full/IMG_7577.webp 1284w" sizes="(max-width: 1024px) 50vw, 25vw" /><img src="Pics/IMG_7577.jpg" alt="Vins sélection V and B" loading="lazy" /></picture></div>
           <div class="prod-info"><div class="prod-cat">Rouge · Bourgogne</div><div class="prod-name">Bourgogne Pinot Noir 2022</div><div class="prod-foot"><span class="prod-price">23,00€</span><span class="prod-vol">75 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
         </article>
       </div>
@@ -465,19 +504,19 @@
     <div id="p-s" role="tabpanel">
       <div class="prod-grid">
         <article class="prod-card">
-          <div class="prod-img"><img src="Pics/IMG_7572.jpg" alt="Yamazaki 12 ans" loading="lazy" style="object-position:left center;" /></div>
+          <div class="prod-img"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7572.webp 640w, Pics/webp/w960/IMG_7572.webp 960w, Pics/webp/full/IMG_7572.webp 1284w" sizes="(max-width: 1024px) 50vw, 25vw" /><img src="Pics/IMG_7572.jpg" alt="Yamazaki 12 ans" loading="lazy" style="object-position:left center;" /></picture></div>
           <div class="prod-info"><div class="prod-cat">Whisky · Single Malt Japon</div><div class="prod-name">Yamazaki 12 ans</div><div class="prod-foot"><span class="prod-price">89,90€</span><span class="prod-vol">70 cl · 43%</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
         </article>
         <article class="prod-card">
-          <div class="prod-img"><img src="Pics/IMG_7572.jpg" alt="Gin V and B" loading="lazy" style="object-position:right top;" /></div>
+          <div class="prod-img"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7572.webp 640w, Pics/webp/w960/IMG_7572.webp 960w, Pics/webp/full/IMG_7572.webp 1284w" sizes="(max-width: 1024px) 50vw, 25vw" /><img src="Pics/IMG_7572.jpg" alt="Gin V and B" loading="lazy" style="object-position:right top;" /></picture></div>
           <div class="prod-info"><div class="prod-cat">Gin · Premium</div><div class="prod-name">Sélection Gin &amp; Tonic</div><div class="prod-foot"><span class="prod-price">À partir de 29€</span><span class="prod-vol">70 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
         </article>
         <article class="prod-card">
-          <div class="prod-img"><img src="Pics/IMG_7572.jpg" alt="Vodka sélection" loading="lazy" style="object-position:right center;" /></div>
+          <div class="prod-img"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7572.webp 640w, Pics/webp/w960/IMG_7572.webp 960w, Pics/webp/full/IMG_7572.webp 1284w" sizes="(max-width: 1024px) 50vw, 25vw" /><img src="Pics/IMG_7572.jpg" alt="Vodka sélection" loading="lazy" style="object-position:right center;" /></picture></div>
           <div class="prod-info"><div class="prod-cat">Vodka · Import</div><div class="prod-name">Vodkas du Monde</div><div class="prod-foot"><span class="prod-price">À partir de 22€</span><span class="prod-vol">70 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
         </article>
         <article class="prod-card">
-          <div class="prod-img"><img src="Pics/IMG_7572.jpg" alt="Liqueurs V and B" loading="lazy" style="object-position:right bottom;" /></div>
+          <div class="prod-img"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7572.webp 640w, Pics/webp/w960/IMG_7572.webp 960w, Pics/webp/full/IMG_7572.webp 1284w" sizes="(max-width: 1024px) 50vw, 25vw" /><img src="Pics/IMG_7572.jpg" alt="Liqueurs V and B" loading="lazy" style="object-position:right bottom;" /></picture></div>
           <div class="prod-info"><div class="prod-cat">Liqueur · Apéritifs</div><div class="prod-name">Amers &amp; Liqueurs Maison</div><div class="prod-foot"><span class="prod-price">À partir de 18€</span><span class="prod-vol">70 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
         </article>
       </div>
@@ -486,19 +525,19 @@
     <div id="p-n" role="tabpanel">
       <div class="prod-grid">
         <article class="prod-card">
-          <div class="prod-img"><img src="Pics/IMG_7571.jpg" alt="Grum sans alcool" loading="lazy" /></div>
+          <div class="prod-img"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7571.webp 640w, Pics/webp/w960/IMG_7571.webp 960w, Pics/webp/full/IMG_7571.webp 1120w" sizes="(max-width: 1024px) 50vw, 25vw" /><img src="Pics/IMG_7571.jpg" alt="Grum sans alcool" loading="lazy" /></picture></div>
           <div class="prod-info"><div class="prod-cat">Pétillant · Sans alcool</div><div class="prod-name">Grum Fruits Rouges</div><div class="prod-foot"><span class="prod-price">4,50€</span><span class="prod-vol">33 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
         </article>
         <article class="prod-card">
-          <div class="prod-img"><img src="Pics/IMG_7576.jpg" alt="Jomo Grenadine" loading="lazy" /></div>
+          <div class="prod-img"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7576.webp 640w, Pics/webp/w960/IMG_7576.webp 960w, Pics/webp/full/IMG_7576.webp 1284w" sizes="(max-width: 1024px) 50vw, 25vw" /><img src="Pics/IMG_7576.jpg" alt="Jomo Grenadine" loading="lazy" /></picture></div>
           <div class="prod-info"><div class="prod-cat">Kombucha · Frais</div><div class="prod-name">Jomo Grenadine Bio</div><div class="prod-foot"><span class="prod-price">4,00€</span><span class="prod-vol">35 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
         </article>
         <article class="prod-card">
-          <div class="prod-img"><img src="Pics/IMG_7578.jpg" alt="Jomo Menthe Citron" loading="lazy" /></div>
+          <div class="prod-img"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7578.webp 640w, Pics/webp/w960/IMG_7578.webp 960w, Pics/webp/full/IMG_7578.webp 1284w" sizes="(max-width: 1024px) 50vw, 25vw" /><img src="Pics/IMG_7578.jpg" alt="Jomo Menthe Citron" loading="lazy" /></picture></div>
           <div class="prod-info"><div class="prod-cat">Pur Jus · Healthy</div><div class="prod-name">Jomo Menthe Citron</div><div class="prod-foot"><span class="prod-price">3,70€</span><span class="prod-vol">35 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
         </article>
         <article class="prod-card">
-          <div class="prod-img"><img src="Pics/IMG_7576.jpg" alt="Pop Mate artisanal" loading="lazy" style="object-position:center bottom;" /></div>
+          <div class="prod-img"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7576.webp 640w, Pics/webp/w960/IMG_7576.webp 960w, Pics/webp/full/IMG_7576.webp 1284w" sizes="(max-width: 1024px) 50vw, 25vw" /><img src="Pics/IMG_7576.jpg" alt="Pop Mate artisanal" loading="lazy" style="object-position:center bottom;" /></picture></div>
           <div class="prod-info"><div class="prod-cat">Pétillant · Artisanal</div><div class="prod-name">Pop Mate Citron</div><div class="prod-foot"><span class="prod-price">5,50€</span><span class="prod-vol">33 cl</span><button class="prod-plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
         </article>
       </div>
@@ -526,7 +565,7 @@
     <h2 class="h2-big">Événements &amp; <em>soirées</em></h2>
     <div class="events-grid">
       <article class="ev-card ev-card-main">
-        <img src="Pics/IMG_7567.jpg" alt="Soirée Saint-Patrick V and B" loading="lazy" />
+        <picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7567.webp 640w, Pics/webp/w960/IMG_7567.webp 960w, Pics/webp/full/IMG_7567.webp 1284w" sizes="(max-width: 900px) 100vw, 55vw" /><img src="Pics/IMG_7567.jpg" alt="Soirée Saint-Patrick V and B" loading="lazy" /></picture>
         <div class="ev-overlay">
           <div class="ev-tag">À ne pas manquer</div>
           <div class="ev-date">Vendredi 27 Juin 2025</div>
@@ -534,14 +573,14 @@
         </div>
       </article>
       <article class="ev-card">
-        <img src="Pics/IMG_7573.jpg" alt="Agenda équipe V and B" loading="lazy" />
+        <picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7573.webp 640w, Pics/webp/w960/IMG_7573.webp 960w, Pics/webp/full/IMG_7573.webp 1284w" sizes="(max-width: 900px) 100vw, 55vw" /><img src="Pics/IMG_7573.jpg" alt="Agenda équipe V and B" loading="lazy" /></picture>
         <div class="ev-overlay">
           <div class="ev-date">Tous les mois</div>
           <h3 class="ev-title">Soirées &amp; Agenda Mensuel</h3>
         </div>
       </article>
       <article class="ev-card">
-        <img src="Pics/IMG_7580.jpg" alt="Team event V and B" loading="lazy" />
+        <picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7580.webp 640w, Pics/webp/w960/IMG_7580.webp 960w, Pics/webp/full/IMG_7580.webp 1284w" sizes="(max-width: 900px) 100vw, 55vw" /><img src="Pics/IMG_7580.jpg" alt="Team event V and B" loading="lazy" /></picture>
         <div class="ev-overlay">
           <div class="ev-date">19 Juillet 2025</div>
           <h3 class="ev-title">Soirée à Thème — Team Event</h3>
@@ -554,11 +593,11 @@
 <!-- GALLERY -->
 <div class="gallery" aria-label="Ambiance V and B">
   <div class="gallery-row">
-    <div class="gallery-cell"><img src="Pics/IMG_7565.jpg" alt="Soirée V and B" loading="lazy" /><div class="gallery-cell-lbl">Soirées</div></div>
-    <div class="gallery-cell"><img src="Pics/IMG_7566.jpg" alt="Terrasse V and B" loading="lazy" /><div class="gallery-cell-lbl">Terrasse</div></div>
-    <div class="gallery-cell"><img src="Pics/IMG_7572.jpg" alt="Cave spiritueux" loading="lazy" /><div class="gallery-cell-lbl">Cave</div></div>
-    <div class="gallery-cell"><img src="Pics/IMG_7574.jpg" alt="Vins V and B" loading="lazy" /><div class="gallery-cell-lbl">Vins</div></div>
-    <div class="gallery-cell"><img src="Pics/IMG_7575.jpg" alt="Bières V and B" loading="lazy" /><div class="gallery-cell-lbl">Bières</div></div>
+    <div class="gallery-cell"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7565.webp 640w, Pics/webp/w960/IMG_7565.webp 960w, Pics/webp/full/IMG_7565.webp 1284w" sizes="(max-width: 768px) 33vw, 20vw" /><img src="Pics/IMG_7565.jpg" alt="Soirée V and B" loading="lazy" /></picture><div class="gallery-cell-lbl">Soirées</div></div>
+    <div class="gallery-cell"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7566.webp 640w, Pics/webp/w960/IMG_7566.webp 960w, Pics/webp/full/IMG_7566.webp 1284w" sizes="(max-width: 768px) 33vw, 20vw" /><img src="Pics/IMG_7566.jpg" alt="Terrasse V and B" loading="lazy" /></picture><div class="gallery-cell-lbl">Terrasse</div></div>
+    <div class="gallery-cell"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7572.webp 640w, Pics/webp/w960/IMG_7572.webp 960w, Pics/webp/full/IMG_7572.webp 1284w" sizes="(max-width: 768px) 33vw, 20vw" /><img src="Pics/IMG_7572.jpg" alt="Cave spiritueux" loading="lazy" /></picture><div class="gallery-cell-lbl">Cave</div></div>
+    <div class="gallery-cell"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7574.webp 640w, Pics/webp/w960/IMG_7574.webp 960w, Pics/webp/full/IMG_7574.webp 1141w" sizes="(max-width: 768px) 33vw, 20vw" /><img src="Pics/IMG_7574.jpg" alt="Vins V and B" loading="lazy" /></picture><div class="gallery-cell-lbl">Vins</div></div>
+    <div class="gallery-cell"><picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7575.webp 640w, Pics/webp/w960/IMG_7575.webp 960w, Pics/webp/full/IMG_7575.webp 1284w" sizes="(max-width: 768px) 33vw, 20vw" /><img src="Pics/IMG_7575.jpg" alt="Bières V and B" loading="lazy" /></picture><div class="gallery-cell-lbl">Bières</div></div>
   </div>
 </div>
 
@@ -584,21 +623,36 @@
   <div class="wrap">
     <div class="findus-grid">
       <div>
-        <p class="eyebrow">Près de chez vous</p>
-        <h2 class="h2-big">Trouver<br>un <em>V and B</em></h2>
-        <p style="color:var(--muted);font-size:1rem;line-height:1.7;margin-bottom:2rem;">Plus de 300 bars-caves en France. Conseils personnalisés, événements locaux et une sélection renouvelée chaque semaine.</p>
-        <div class="store-search">
-          <input type="text" placeholder="Ville ou code postal…" autocomplete="postal-code" />
-          <button type="button" aria-label="Rechercher"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></button>
-        </div>
-        <div class="stores">
-          <div class="store-row"><div class="store-dot"></div><div><div class="store-name">V and B Paris 11e</div><div class="store-addr">47 Rue de la Roquette, 75011 Paris</div></div><div class="store-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
-          <div class="store-row"><div class="store-dot"></div><div><div class="store-name">V and B Lyon Confluence</div><div class="store-addr">12 Cours Charlemagne, 69002 Lyon</div></div><div class="store-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
-          <div class="store-row"><div class="store-dot"></div><div><div class="store-name">V and B Bordeaux Chartrons</div><div class="store-addr">58 Cours du Médoc, 33300 Bordeaux</div></div><div class="store-arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div>
+        <p class="eyebrow">Saint-Memmie</p>
+        <h2 class="h2-big">Nous<br><em>trouver</em></h2>
+        <p style="color:var(--muted);font-size:1rem;line-height:1.7;margin-bottom:2rem;">Cave et bar au cœur de Saint-Memmie, à deux pas de Châlons-en-Champagne. On vous conseille, on vous fait goûter, et on vous garde une table.</p>
+        <div class="store-card">
+          <div class="store-name">V and B Saint-Memmie</div>
+          <div class="store-line">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>11 Av. Mercuria<br>51470 Saint-Memmie</span>
+          </div>
+          <div class="store-line">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0122 16.92z"/></svg>
+            <a href="tel:+33326653155">03 26 65 31 55</a>
+          </div>
+          <div class="hours">
+            <div class="hours-row"><span class="hours-day">lundi</span><span class="hours-time">12:00 – 22:00</span></div>
+            <div class="hours-row"><span class="hours-day">mardi</span><span class="hours-time">10:00 – 22:00</span></div>
+            <div class="hours-row"><span class="hours-day">mercredi</span><span class="hours-time">10:00 – 22:00</span></div>
+            <div class="hours-row"><span class="hours-day">jeudi</span><span class="hours-time">10:00 – 22:00</span></div>
+            <div class="hours-row"><span class="hours-day">vendredi</span><span class="hours-time">10:00 – 22:00</span></div>
+            <div class="hours-row"><span class="hours-day">samedi</span><span class="hours-time">10:00 – 22:00</span></div>
+            <div class="hours-row closed"><span class="hours-day">dimanche</span><span class="hours-time">Fermé</span></div>
+          </div>
+          <div class="store-actions">
+            <a class="btn btn-dark" href="https://www.google.com/maps/search/?api=1&amp;query=V%20and%20B%20Saint-Memmie%2C%2011%20Av.%20Mercuria%2C%2051470%20Saint-Memmie" target="_blank" rel="noopener">Itinéraire</a>
+            <a class="btn btn-yellow" href="reservation.html">Réserver une table</a>
+          </div>
         </div>
       </div>
       <div class="findus-visual">
-        <img src="Pics/IMG_7565.jpg" alt="Ambiance V and B" loading="lazy" />
+        <picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7565.webp 640w, Pics/webp/w960/IMG_7565.webp 960w, Pics/webp/full/IMG_7565.webp 1284w" sizes="(max-width: 900px) 100vw, 50vw" /><img src="Pics/IMG_7565.jpg" alt="Ambiance V and B" loading="lazy" /></picture>
         <div class="findus-pin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
       </div>
     </div>
@@ -627,7 +681,7 @@
     <div class="footer-top">
       <div class="footer-brand">
         <div class="f-logo"><img class="vb-full" src="Pics/logo-vandb-stmemmie-blanc.png" alt="V and B St-Memmie" width="715" height="692" /></div>
-        <p>Cave &amp; Bar — Partageur de bons moments depuis 1994. Plus de 300 établissements à travers toute la France.</p>
+        <p>Cave &amp; Bar à Saint-Memmie — partageur de bons moments.<br>11 Av. Mercuria, 51470 Saint-Memmie<br><a href="tel:+33326653155" style="color:inherit;">03 26 65 31 55</a><br>Lundi 12h–22h · Mardi au samedi 10h–22h · Dimanche fermé</p>
         <nav class="f-socials" aria-label="Réseaux sociaux">
           <a href="https://www.instagram.com/vandb_stmemmie/" class="f-soc" aria-label="Instagram V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
           <a href="https://www.facebook.com/VandBStMemmie" class="f-soc" aria-label="Facebook V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
@@ -635,7 +689,7 @@
       </div>
       <div><div class="f-col-title">Explorer</div><ul class="f-links"><li><a href="reservation.html">Réserver une table</a></li><li><a href="menu.html">Le menu</a></li><li><a href="#concept">Notre concept</a></li><li><a href="#produits">Bières &amp; Vins</a></li><li><a href="#evenements">Événements</a></li><li><a href="#">E-shop</a></li></ul></div>
       <div><div class="f-col-title">Services</div><ul class="f-links"><li><a href="#tireuse">Location tireuse</a></li><li><a href="#">Bouteille personnalisée</a></li><li><a href="#">Click &amp; Collect</a></li><li><a href="#">Séminaires</a></li></ul></div>
-      <div><div class="f-col-title">Infos</div><ul class="f-links"><li><a href="#">Qui sommes-nous ?</a></li><li><a href="#">Franchise V and B</a></li><li><a href="#">Blog</a></li><li><a href="#">Recrutement</a></li><li><a href="#">Contact</a></li></ul></div>
+      <div><div class="f-col-title">Infos</div><ul class="f-links"><li><a href="#">Qui sommes-nous ?</a></li><li><a href="#">Franchise V and B</a></li><li><a href="#">Blog</a></li><li><a href="#">Recrutement</a></li><li><a href="#trouver">Nous contacter</a></li></ul></div>
     </div>
     <div class="footer-bottom">
       <p class="footer-copy">© 2026 V and B St-Memmie — Tous droits réservés.</p>
@@ -675,7 +729,11 @@
   /* Smooth scroll */
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
-      const t = document.querySelector(a.getAttribute('href'));
+      // Les liens encore en attente pointent sur « # » : querySelector('#')
+      // lève une SyntaxError, il faut donc les écarter avant l'appel.
+      const href = a.getAttribute('href');
+      if (href === '#') { e.preventDefault(); return; }
+      const t = document.querySelector(href);
       if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     });
   });

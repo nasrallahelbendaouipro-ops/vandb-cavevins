@@ -230,23 +230,35 @@ Un `token refresh failed` sur ce champ = la connexion Google est tombée
 
 Autres points d'exploitation :
 
-- **Plafond de couverts** : **aucun par défaut** depuis le 2026-08-27 — le
-  nombre de couverts est arbitré par les responsables, pas par le site. Une date
-  n'est plafonnée que si elle a une ligne dans `capacity_overrides` :
+- **Plafond de couverts** : **150 par défaut** depuis le 2026-09-08. Ce défaut
+  remplace la règle du 2026-08-27 (aucun plafond sauf ligne explicite), qui
+  laissait un jour de forte affluence sans limite si personne n'y pensait à
+  l'avance. `capacity_overrides` garde tout son rôle : une ligne pour une date
+  donnée l'emporte sur le défaut, à la hausse comme à la baisse.
 
   ```sql
-  -- poser un plafond sur une date
+  -- plafond particulier sur une date (ex. privatisation)
   insert into capacity_overrides values ('2026-12-31', 80)
   on conflict (reservation_date) do update set max_covers = excluded.max_covers;
 
-  -- le retirer
+  -- revenir au défaut de 150
   delete from capacity_overrides where reservation_date = '2026-12-31';
   ```
 
-  Quand une date n'est pas plafonnée, `get_availability` renvoie `max_covers` et
-  `remaining` à `null`, et `reservation.html` n'affiche alors aucun compteur de
-  couverts. Le garde-fou anti-spam (`check_reservation_rate_limit`) reste actif
-  dans tous les cas : il est indépendant du plafond.
+  Pour changer le défaut lui-même, c'est `v_default_max_covers` dans
+  `check_reservation_capacity()` **et** dans `get_availability()` — les deux,
+  sinon le compteur affiché ne correspond plus à ce que la base accepte.
+  `get_availability` renvoie désormais toujours des valeurs non nulles, donc le
+  compteur de couverts s'affiche sur toutes les dates. Le garde-fou anti-spam
+  (`check_reservation_rate_limit`) reste actif dans tous les cas : il est
+  indépendant du plafond.
+- **Créneaux réservables** : dimanche fermé, lundi 12:00–22:00, mardi à samedi
+  10:00–22:00, dernier créneau à 21:00 (une heure avant la fermeture). La règle
+  est appliquée en base par la contrainte `reservations_opening_hours` et
+  reprise dans `reservation.html` (`OPENING_MIN` / `LAST_SLOT_MIN`) : **si les
+  horaires du bar changent, modifier les deux**. Un créneau déjà passé dans la
+  journée en cours est refusé par le trigger `trg_validate_reservation_slot` et
+  masqué par le formulaire.
 - **Cron menu** : job `canva-menu-sync-every-15-min`, visible via `select * from cron.job;`
 - **Rien ne notifie l'équipe d'une nouvelle réservation** en dehors de l'agenda
   et du tableur : pas d'e-mail ni de SMS. Le texte de confirmation de
