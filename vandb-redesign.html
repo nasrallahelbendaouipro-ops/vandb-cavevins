@@ -137,13 +137,6 @@
         linear-gradient(to top, rgba(17,16,16,.55) 0%, transparent 45%);
     }
     .hero-body { position: relative; z-index: 2; padding-bottom: 5.5rem; width: 100%; }
-    .hero-pill {
-      display: inline-flex; align-items: center; gap: .6rem;
-      background: rgba(232,168,0,.18); border: 1px solid rgba(232,168,0,.4);
-      border-radius: 20px; padding: .35rem 1rem; margin-bottom: 1.5rem;
-    }
-    .hero-pill-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); }
-    .hero-pill-txt { font-size: .67rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--yellow); }
     .hero-h1 { font-family: var(--fd); font-size: clamp(4rem, 11vw, 10rem); line-height: .91; letter-spacing: .01em; color: var(--white); margin-bottom: 1.75rem; }
     .hero-h1 i { color: var(--yellow); font-style: normal; display: block; }
     .hero-sub { font-size: 1.05rem; color: rgba(255,255,255,.78); max-width: 420px; line-height: 1.65; margin-bottom: 2.25rem; }
@@ -186,7 +179,7 @@
 
     /* ── Stats ── */
     .stats { background: var(--dark); padding: 4rem 0; }
-    .stats-row { display: grid; grid-template-columns: repeat(4,1fr); }
+    .stats-row { display: grid; grid-template-columns: repeat(2,1fr); }
     .stat { text-align: center; padding: 1.5rem 1rem; border-right: 1px solid rgba(255,255,255,.08); }
     .stat:last-child { border-right: none; }
     .stat-n { font-family: var(--fd); font-size: clamp(3rem,5vw,4.5rem); color: var(--yellow); line-height: 1; margin-bottom: .4rem; }
@@ -321,7 +314,6 @@
       .ev-card-main { grid-row:span 1; }
       .findus-grid { grid-template-columns:1fr; }
       .tap-inner { flex-direction:column; }
-      .stats-row { grid-template-columns:repeat(2,1fr); }
       .stat { border-right:none; border-bottom:1px solid rgba(255,255,255,.08); }
       .stat:nth-child(odd) { border-right:1px solid rgba(255,255,255,.08); }
       .stat:nth-last-child(-n+2) { border-bottom:none; }
@@ -367,7 +359,7 @@
           <a href="https://www.facebook.com/VandBStMemmie" class="nav-soc" aria-label="Facebook V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
         </nav>
         <a href="reservation.html" class="btn btn-ghost" id="nbtn" style="font-size:.72rem;">Réserver</a>
-        <a href="#" class="btn btn-yellow" style="font-size:.72rem;">E-shop</a>
+        <a href="https://www.ubereats.com/fr/store/v-and-b-st-memmie/rSU-tXcyUO-kDpofahNDBg" class="btn btn-yellow" style="font-size:.72rem;" target="_blank" rel="noopener">Commander</a>
       </div>
     </div>
   </div>
@@ -378,10 +370,6 @@
   <div class="hero-bg"></div>
   <div class="hero-veil"></div>
   <div class="wrap hero-body">
-    <div class="hero-pill">
-      <div class="hero-pill-dot"></div>
-      <span class="hero-pill-txt">Cave &amp; Bar · Depuis 1994 · +300 adresses</span>
-    </div>
     <h1 class="hero-h1">
       Partageur<br>
       <i>de bons</i><br>
@@ -439,8 +427,6 @@
 <div class="stats">
   <div class="wrap">
     <div class="stats-row">
-      <div class="stat"><div class="stat-n">300+</div><div class="stat-l">Bars en France</div></div>
-      <div class="stat"><div class="stat-n">1994</div><div class="stat-l">Année de création</div></div>
       <div class="stat"><div class="stat-n">2000+</div><div class="stat-l">Références en rayon</div></div>
       <div class="stat"><div class="stat-n">100%</div><div class="stat-l">Passion &amp; convivialité</div></div>
     </div>
@@ -687,7 +673,7 @@
           <a href="https://www.facebook.com/VandBStMemmie" class="f-soc" aria-label="Facebook V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
         </nav>
       </div>
-      <div><div class="f-col-title">Explorer</div><ul class="f-links"><li><a href="reservation.html">Réserver une table</a></li><li><a href="menu.html">Le menu</a></li><li><a href="#concept">Notre concept</a></li><li><a href="#produits">Bières &amp; Vins</a></li><li><a href="#evenements">Événements</a></li><li><a href="#">E-shop</a></li></ul></div>
+      <div><div class="f-col-title">Explorer</div><ul class="f-links"><li><a href="reservation.html">Réserver une table</a></li><li><a href="menu.html">Le menu</a></li><li><a href="#concept">Notre concept</a></li><li><a href="#produits">Bières &amp; Vins</a></li><li><a href="#evenements">Événements</a></li><li><a href="https://www.ubereats.com/fr/store/v-and-b-st-memmie/rSU-tXcyUO-kDpofahNDBg" target="_blank" rel="noopener">Commander sur Uber Eats</a></li></ul></div>
       <div><div class="f-col-title">Services</div><ul class="f-links"><li><a href="#tireuse">Location tireuse</a></li><li><a href="#">Bouteille personnalisée</a></li><li><a href="#">Click &amp; Collect</a></li><li><a href="#">Séminaires</a></li></ul></div>
       <div><div class="f-col-title">Infos</div><ul class="f-links"><li><a href="#">Qui sommes-nous ?</a></li><li><a href="#">Franchise V and B</a></li><li><a href="#">Blog</a></li><li><a href="#">Recrutement</a></li><li><a href="#trouver">Nous contacter</a></li></ul></div>
     </div>
