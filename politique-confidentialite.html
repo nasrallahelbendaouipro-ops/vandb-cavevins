@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Politique de confidentialité — V and B St-Memmie</title>
+  <meta name="description" content="Quelles données le formulaire de réservation de V and B Saint-Memmie collecte, où elles sont stockées, combien de temps, et comment exercer vos droits." />
+  <link rel="canonical" href="https://vandb-cavevins.netlify.app/politique-confidentialite.html" />
+  <link rel="icon" href="Pics/logo-vandb-stmemmie.png" />
+  <meta name="robots" content="noindex, follow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #F8F4EE;
+      --dark:    #111010;
+      --white:   #FFFFFF;
+      --yellow:  #E8A800;
+      --red:     #C5142B;
+      --text:    #1A1209;
+      --muted:   #7A6B58;
+      --border:  rgba(26,18,9,0.1);
+      --r:       6px;
+      --fd: 'Bebas Neue', Impact, sans-serif;
+      --fb: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    body { background: var(--bg); color: var(--text); font-family: var(--fb); font-size: 16px; line-height: 1.7; }
+    .wrap { max-width: 46rem; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+    .vb-mark { height: 62px; width: auto; display: block; margin-bottom: 2.5rem; }
+    h1 { font-family: var(--fd); font-size: clamp(2.5rem, 7vw, 3.5rem); line-height: 1; letter-spacing: .02em; font-weight: 400; margin-bottom: .5rem; }
+    .updated { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 2.5rem; }
+    h2 { font-family: var(--fd); font-size: 1.5rem; font-weight: 400; letter-spacing: .04em; margin: 2.75rem 0 .85rem; padding-bottom: .4rem; border-bottom: 2px solid var(--text); }
+    h3 { font-size: .95rem; font-weight: 600; margin: 1.5rem 0 .4rem; }
+    p { margin-bottom: 1rem; }
+    ul { margin: 0 0 1rem 1.15rem; }
+    li { margin-bottom: .45rem; }
+    a { color: var(--text); text-decoration: underline; text-underline-offset: 2px; text-decoration-color: var(--border); }
+    a:hover { color: var(--red); text-decoration-color: var(--red); }
+
+    .tbl-wrap { overflow-x: auto; margin-bottom: 1.25rem; }
+    table { border-collapse: collapse; width: 100%; font-size: .9rem; min-width: 30rem; }
+    th, td { text-align: left; padding: .6rem .8rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; }
+    tbody tr:last-child td { border-bottom: none; }
+
+    /* Champs que seul l'exploitant peut fournir. Volontairement criards :
+       tant qu'il en reste un, la page ne doit pas être mise en ligne. */
+    .afaire {
+      background: var(--yellow); color: var(--text); font-weight: 700;
+      padding: .05em .4em; border-radius: 3px; font-size: .9em;
+      white-space: nowrap;
+    }
+    .avert {
+      background: var(--red); color: var(--white); border-radius: var(--r);
+      padding: 1.1rem 1.25rem; margin-bottom: 2.5rem;
+    }
+    .avert b { display: block; font-size: .95rem; margin-bottom: .3rem; }
+    .avert p { font-size: .88rem; margin: 0; opacity: .93; }
+
+    .note { background: var(--white); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem 1.15rem; margin-bottom: 1.25rem; font-size: .92rem; }
+    .note p:last-child { margin-bottom: 0; }
+
+    footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: .85rem; color: var(--muted); display: flex; gap: 1.25rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a href="vandb-redesign.html" aria-label="Accueil V and B St-Memmie"><img class="vb-mark" src="Pics/logo-vandb-stmemmie.png" alt="V and B St-Memmie" width="715" height="692" /></a>
+
+    <div class="avert">
+      <b>Document incomplet — ne pas mettre en ligne en l'état</b>
+      <p>Les champs surlignés en jaune ne peuvent être renseignés que par l'exploitant. La durée de conservation (§ 5) doit en outre être appliquée techniquement : aucune suppression automatique n'existe à ce jour. Supprimez ce bloc une fois les deux points réglés.</p>
+    </div>
+
+    <h1>Politique de confidentialité</h1>
+    <p class="updated">Dernière mise à jour : 8 septembre 2026</p>
+
+    <p>Cette page décrit ce que devient ce que vous saisissez sur ce site. Elle est volontairement précise : elle décrit le fonctionnement réel du système, pas un modèle type.</p>
+
+    <h2>1. Responsable du traitement</h2>
+    <p><span class="afaire">[RAISON SOCIALE]</span>, exploitant de l'établissement V and B situé 11 Av. Mercuria, 51470 Saint-Memmie. Contact : <span class="afaire">[EMAIL DE CONTACT]</span> ou 03 26 65 31 55. Les autres informations légales figurent dans les <a href="mentions-legales.html">mentions légales</a>.</p>
+
+    <h2>2. Ce que nous collectons</h2>
+    <p>Un seul formulaire de ce site collecte des données personnelles : celui de réservation de table. La navigation sur le reste du site n'en collecte aucune.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Donnée</th><th>Obligatoire</th><th>Pourquoi</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Nom</td><td>Oui</td><td>Identifier la table à votre arrivée</td></tr>
+          <tr><td>Téléphone</td><td>Oui</td><td>Vous joindre en cas d'imprévu, et limiter les réservations en rafale</td></tr>
+          <tr><td>E-mail</td><td>Non</td><td>Vous confirmer la réservation si vous le souhaitez</td></tr>
+          <tr><td>Nombre de personnes</td><td>Oui</td><td>Préparer la table et gérer le nombre de couverts du jour</td></tr>
+          <tr><td>Date et heure</td><td>Oui</td><td>Objet même de la réservation</td></tr>
+          <tr><td>Notes libres</td><td>Non</td><td>Vos éventuelles précisions (allergies, occasion, accessibilité)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Aucune adresse IP n'est enregistrée. Le dispositif anti-spam ne repose que sur l'heure d'enregistrement et le numéro de téléphone déjà présents dans la réservation.</p>
+
+    <h2>3. Base légale</h2>
+    <p>Le traitement repose sur l'exécution de mesures précontractuelles prises à votre demande (article 6.1.b du RGPD) : sans ces données, la réservation ne peut pas être honorée. Le champ « notes » et l'adresse e-mail sont facultatifs et relèvent de votre initiative.</p>
+
+    <h2>4. Qui y a accès</h2>
+    <p>L'équipe de l'établissement, pour tenir le service. Aucune donnée n'est vendue, louée, ni transmise à des fins publicitaires ou de prospection.</p>
+    <p>Trois prestataires techniques interviennent :</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Prestataire</th><th>Rôle</th><th>Localisation des données</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Supabase</td><td>Base de données des réservations</td><td>Irlande (Union européenne)</td></tr>
+          <tr><td>Google</td><td>Agenda et tableur de suivi du bar</td><td>Hors UE, encadré par les clauses contractuelles types</td></tr>
+          <tr><td>Netlify</td><td>Hébergement des pages du site</td><td>États-Unis — <strong>ne reçoit aucune donnée de réservation</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      <p>Le point sur Netlify mérite une précision, parce qu'il est contre-intuitif : le formulaire ne passe pas par l'hébergeur du site. Votre navigateur envoie la réservation directement à la base de données. Netlify ne sert que les pages elles-mêmes et ne voit jamais leur contenu.</p>
+    </div>
+    <p>Chaque réservation est en revanche recopiée automatiquement dans l'agenda Google et le tableur du bar, qui contiennent donc votre nom, votre téléphone, votre e-mail éventuel et vos notes.</p>
+
+    <h2>5. Combien de temps</h2>
+    <p>Les réservations sont conservées <span class="afaire">[DURÉE À FIXER — ex. 12 mois]</span> après la date de la table, puis supprimées. Les copies présentes dans l'agenda et le tableur Google suivent la même règle.</p>
+    <div class="note">
+      <p><strong>À l'heure où ce document est écrit, aucune suppression automatique n'est en place</strong> : les réservations restent en base indéfiniment. Cette durée doit être choisie puis appliquée techniquement avant la mise en ligne de cette page, sans quoi elle énoncerait une règle qui n'existe pas.</p>
+    </div>
+
+    <h2>6. Vos droits</h2>
+    <p>Vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité sur vos données. Pour l'exercer, écrivez à <span class="afaire">[EMAIL DE CONTACT]</span> ou appelez le 03 26 65 31 55, en indiquant la date et le nom de la réservation concernée.</p>
+    <p>Nous répondons sous un mois. Si la réponse ne vous satisfait pas, vous pouvez saisir la CNIL — <a href="https://www.cnil.fr" target="_blank" rel="noopener">cnil.fr</a>, 3 place de Fontenoy, TSA 80715, 75334 Paris Cedex 07.</p>
+
+    <h2 id="cookies">7. Cookies et traceurs</h2>
+    <p><strong>Ce site ne dépose aucun cookie.</strong> Il n'utilise ni mesure d'audience, ni outil statistique, ni traceur publicitaire, ni bouton de partage relié à un réseau social. Aucun bandeau de consentement n'est donc nécessaire.</p>
+    <p>Trois ressources sont néanmoins chargées depuis des serveurs extérieurs, qui reçoivent de ce fait votre adresse IP et les caractéristiques techniques de votre navigateur :</p>
+    <ul>
+      <li><strong>Google Fonts</strong> (<code>fonts.googleapis.com</code>, <code>fonts.gstatic.com</code>) — les polices d'affichage du site.</li>
+      <li><strong>jsDelivr</strong> (<code>cdn.jsdelivr.net</code>) — la bibliothèque qui permet aux pages Menu et Réservation de dialoguer avec la base de données.</li>
+      <li><strong>Supabase</strong> (<code>vfkjiprgawimhmieikyw.supabase.co</code>) — la base elle-même, ainsi que les images du menu.</li>
+    </ul>
+    <p>Ces appels sont techniques et ne servent à aucun suivi. Héberger les polices avec le site supprimerait le premier de cette liste.</p>
+
+    <h2>8. Sécurité</h2>
+    <p>Les échanges avec le site et la base sont chiffrés (HTTPS). La clé publique présente dans le code des pages n'autorise qu'une seule opération : créer une réservation. Elle ne permet ni de lire, ni de modifier, ni de supprimer les réservations existantes — y compris la vôtre, et y compris celles des autres clients.</p>
+
+    <h2>9. Modification de cette politique</h2>
+    <p>Toute évolution du système susceptible de changer ce qui précède — notification par e-mail, inscription à une lettre d'information, mesure d'audience — donnera lieu à une mise à jour de cette page et de sa date en tête de document.</p>
+
+    <footer>
+      <a href="vandb-redesign.html">Accueil</a>
+      <a href="mentions-legales.html">Mentions légales</a>
+      <a href="reservation.html">Réserver une table</a>
+    </footer>
+  </div>
+</body>
+</html>
