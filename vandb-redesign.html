@@ -122,6 +122,7 @@
     .nav.solid .nav-links a:hover { color: var(--text); }
     .nav.solid .nav-links a::after { background: var(--red); }
     .nav-cta { display: flex; gap: .75rem; }
+    .nav-cta .btn { font-size: .72rem; }
 
     /* ── Hero ── */
     .hero { position: relative; height: 100dvh; min-height: 640px; display: flex; align-items: flex-end; overflow: hidden; }
@@ -303,8 +304,31 @@
       .footer-top { grid-template-columns:1fr 1fr; }
     }
     @media(max-width:900px){
-      .concept { grid-template-columns:1fr; }
-      .concept-img { height:55vw; }
+      /* L'image et le texte empilés donnaient une photo écrasée à 215 px
+         surmontant un pavé de texte. L'accroche passe donc sur la photo :
+         le bloc image séparé disparaît au profit d'un fond porté par
+         .concept-head, qui réunit les deux dans un même rectangle. */
+      .concept { display:block; min-height:0; }
+      .concept-img { display:none; }
+      .concept-txt { padding:0 1.5rem 3.5rem; }
+      .concept-head {
+        position:relative; margin:0 -1.5rem 2rem; min-height:56vh;
+        display:flex; flex-direction:column; justify-content:flex-end;
+        padding:2rem 1.5rem 1.75rem;
+        background:-webkit-image-set(url('Pics/webp/full/IMG_7570.webp') type('image/webp'), url('Pics/IMG_7570.jpg') type('image/jpeg')) center 28%/cover no-repeat;
+        background:image-set(url('Pics/webp/full/IMG_7570.webp') type('image/webp'), url('Pics/IMG_7570.jpg') type('image/jpeg')) center 28%/cover no-repeat;
+      }
+      /* Voile dégradé : sans lui, le titre blanc se perd sur les zones
+         claires de la photo (les étiquettes de bouteilles en arrière-plan). */
+      .concept-head::after {
+        content:''; position:absolute; inset:0;
+        background:linear-gradient(to top, rgba(17,16,16,.88) 0%, rgba(17,16,16,.5) 45%, rgba(17,16,16,.12) 100%);
+      }
+      .concept-head .eyebrow, .concept-head .h2-big { position:relative; z-index:1; }
+      .concept-head .eyebrow { color:var(--yellow); }
+      .concept-head .h2-big { color:var(--white); margin-bottom:0; }
+      /* Le rouge de marque manque de contraste sur une photo sombre. */
+      .concept-head .h2-big em { color:var(--yellow); }
       .events-grid { grid-template-columns:1fr; grid-template-rows:60vh auto auto; height:auto; }
       .ev-card-main { grid-row:span 1; }
       .findus-grid { grid-template-columns:1fr; }
@@ -322,6 +346,13 @@
     @media(max-width:640px){
       .nav-socials { display:none; }
       .vb-mark { height:56px; }
+      /* Les deux boutons gardaient leur padding de 2rem : la barre réclamait
+         444 px pour 390 disponibles et « Commander » sortait de l'écran. */
+      .wrap { padding:0 1.25rem; }
+      .nav-cta { gap:.5rem; }
+      .nav-cta .btn { font-size:.64rem; padding:.7rem .85rem; letter-spacing:.08em; }
+      /* .67rem tombait sous 11 px une fois rendu. */
+      .eyebrow { font-size:.74rem; }
       .prod-grid { grid-template-columns:repeat(2,1fr); }
       .hero-h1 { font-size:clamp(3rem,14vw,6rem); }
       .promo { height:420px; }
@@ -353,8 +384,8 @@
           <a href="https://www.instagram.com/vandb_stmemmie/" class="nav-soc" aria-label="Instagram V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
           <a href="https://www.facebook.com/VandBStMemmie" class="nav-soc" aria-label="Facebook V and B St-Memmie" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
         </nav>
-        <a href="reservation.html" class="btn btn-ghost" id="nbtn" style="font-size:.72rem;">Réserver</a>
-        <a href="https://www.ubereats.com/fr/store/v-and-b-st-memmie/rSU-tXcyUO-kDpofahNDBg" class="btn btn-yellow" style="font-size:.72rem;" target="_blank" rel="noopener">Commander</a>
+        <a href="reservation.html" class="btn btn-ghost" id="nbtn">Réserver</a>
+        <a href="https://www.ubereats.com/fr/store/v-and-b-st-memmie/rSU-tXcyUO-kDpofahNDBg" class="btn btn-yellow" target="_blank" rel="noopener">Commander</a>
       </div>
     </div>
   </div>
@@ -396,8 +427,10 @@
     <picture><source type="image/webp" srcset="Pics/webp/w640/IMG_7570.webp 640w, Pics/webp/w960/IMG_7570.webp 960w, Pics/webp/full/IMG_7570.webp 1173w" sizes="(max-width: 900px) 100vw, 50vw" /><img src="Pics/IMG_7570.jpg" alt="Conseil vins et bières — V and B" loading="lazy" /></picture>
   </div>
   <div class="concept-txt">
-    <p class="eyebrow">Notre univers</p>
-    <h2 class="h2-big">Mi-cave,<br>mi-bar.<br><em>100% passion.</em></h2>
+    <div class="concept-head">
+      <p class="eyebrow">Notre univers</p>
+      <h2 class="h2-big">Mi-cave,<br>mi-bar.<br><em>100% passion.</em></h2>
+    </div>
     <p class="body-copy">V and B, c'est un concept unique en France : vous entrez dans une cave à vins et bières, et vous pouvez aussi y boire un verre sur place. Nos sommeliers passionnés vous guident dans une sélection de plus de 2 000 références.</p>
     <div class="pillars">
       <div class="pillar">
