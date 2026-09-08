@@ -40,7 +40,8 @@ All three pages share the same design tokens (CSS custom properties for color/fo
 
 Known schema (from prior work, verify with `list_tables` before relying on it):
 - **`reservations`** — RLS enabled; the anon key can only **INSERT**, never SELECT/UPDATE/DELETE. A `BEFORE INSERT/UPDATE` trigger (`check_reservation_capacity`) atomically enforces the per-date covers cap in Postgres, when one is set.
-- **`capacity_overrides`** — opt-in per-date cover cap. A date with **no row here has no limit at all** — the managers decide the maximum, not the site. `get_availability` then returns `max_covers`/`remaining` as `null`, which `reservation.html` reads as "show no counter". The anti-spam rate limit is independent and always applies.
+- **`capacity_overrides`** — per-date cover cap that overrides the **default of 150 covers/day** (set 2026-09-08; it replaced a short-lived no-default-cap rule). `get_availability` therefore always returns non-null values and `reservation.html` always shows the counter. The default lives in `v_default_max_covers` in **both** `check_reservation_capacity()` and `get_availability()` — change both. The anti-spam rate limit is independent and always applies.
+- **Opening hours are enforced in the database**, not just the form: `reservations_opening_hours` (closed Sunday, Monday from 12:00, Tue–Sat from 10:00, last slot 21:00) plus `trg_validate_reservation_slot` for past/too-distant slots. `reservation.html` mirrors the same values in `OPENING_MIN`/`LAST_SLOT_MIN` — **if the bar's hours change, update both.**
 - **`get_availability(p_date)`** — security-definer RPC used by the reservation form to show remaining covers without exposing other customers' rows.
 - **`menu_meta`** — single-row-per-menu metadata (`page_count`, `updated_at`) read by `menu.html`.
 - Menu page images live in Supabase Storage at `menu/page-{n}.png`, fetched as `{SUPABASE_URL}/storage/v1/object/public/menu/page-{n}.png?v={updated_at}` for cache-busting.

@@ -3,6 +3,16 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 const TOKEN_EXPIRY_BUFFER_MS = 60000;
 const SHEET_HEADER = ["Date", "Heure", "Nom", "Téléphone", "Email", "Couverts", "Notes", "Créé le"];
 
+// Les champs texte d'une réservation sont saisis librement par n'importe quel
+// visiteur, et le tableur écrit en valueInputOption=USER_ENTERED : une valeur
+// commençant par = + - @ est interprétée comme une formule et s'exécute à
+// l'ouverture du fichier (injection de formule / CSV injection).
+// L'apostrophe de tête force Sheets à traiter la cellule comme du texte.
+function sheetSafe(value: unknown) {
+  const s = value == null ? "" : String(value);
+  return /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+}
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -252,13 +262,13 @@ Deno.serve(async (req) => {
           values: [[
             reservation.reservation_date,
             timeShort,
-            reservation.customer_name,
+            sheetSafe(reservation.customer_name),
             // Leading apostrophe forces Sheets to keep this as text — otherwise
             // USER_ENTERED parses it as a number and drops a leading zero.
             `'${reservation.phone}`,
-            reservation.email || "",
+            sheetSafe(reservation.email),
             reservation.party_size,
-            reservation.notes || "",
+            sheetSafe(reservation.notes),
             reservation.created_at,
           ]],
         }),
