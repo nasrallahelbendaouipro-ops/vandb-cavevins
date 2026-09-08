@@ -260,6 +260,36 @@ Autres points d'exploitation :
   journée en cours est refusé par le trigger `trg_validate_reservation_slot` et
   masqué par le formulaire.
 - **Cron menu** : job `canva-menu-sync-every-15-min`, visible via `select * from cron.job;`
+- **Agenda du mois** : affiché sous le menu, alimenté par la table `agenda_meta`
+  — **rien à voir avec la synchro Canva**. Une ligne unique, un `UPDATE` par mois.
+
+  Procédure quand le gérant envoie la nouvelle affiche :
+
+  1. Déposer l'affiche dans `agenda/` du dépôt (ex. `agenda/agenda-octobre-2026.jpg`)
+     et pousser — Netlify la sert directement. **Il faut une image**, pas un PDF :
+     elle est affichée en aperçu sous les cartes et s'agrandit au toucher.
+
+     Si le gérant n'envoie qu'un PDF, on le convertit sans outil supplémentaire :
+     `pdfjs-dist` rendu dans Chromium via Playwright, puis export du canvas en
+     JPEG. Viser ~1600 px de large et qualité 0.86 — l'affiche de septembre pèse
+     ainsi 392 Ko pour 1600×1994, net sur mobile sans plomber la page.
+  2. Remplacer le contenu :
+
+  ```sql
+  update agenda_meta
+     set month_label = 'Octobre 2026',
+         highlight   = null,   -- ou jsonb_build_object('title',…,'when',…,'lines',…)
+         events      = '[…]'::jsonb,
+         poster_path = 'agenda/agenda-octobre-2026.jpg',
+         updated_at  = now()
+   where id = 1;
+  ```
+
+  Forme d'un évènement : `{when, note?, time?, title, lines[]}`. `when` est
+  l'étiquette de date, `note` la précision entre parenthèses, `time` l'horaire.
+  Si `events` est vide ou si la requête échoue, la section reste **masquée** —
+  l'agenda est un complément, son absence n'abîme pas la page du menu. Une
+  affiche introuvable masque seulement l'affiche : les cartes restent.
 - **Rien ne notifie l'équipe d'une nouvelle réservation** en dehors de l'agenda
   et du tableur : pas d'e-mail ni de SMS. Le texte de confirmation de
   `reservation.html` mentionne qu'un SMS « peut » être envoyé — aucun envoi n'est
