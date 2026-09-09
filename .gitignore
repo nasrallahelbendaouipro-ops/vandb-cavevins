@@ -1,6 +1,19 @@
+# Secrets — ne doivent jamais être versionnés
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+service-account*.json
+
 # Local Netlify folder
 .netlify
 
 # Local Claude Code settings (contains an operational secret in the
 # permission allowlist history — machine-specific, never commit)
 .claude/settings.local.json
+
+# OS / éditeurs
+.DS_Store
+Thumbs.db
