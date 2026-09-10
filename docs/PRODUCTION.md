@@ -16,8 +16,9 @@ du bar** plutôt que sur le compte personnel utilisé pendant le développement.
 | Réservations → Google Agenda | Edge Function `reservation-calendar-sync` | Actif |
 | Réservations → Google Sheets | même function (onglets « Résumé quotidien » + « Réservations ») | Actif |
 | Menu Canva → site | Edge Functions `canva-menu-sync` (cron 15 min) et `canva-menu-sync-public` (à l'ouverture de `menu.html`) | Actif |
+| Supervision de la synchro menu | Edge Function `menu-sync-health` (cron horaire) → alerte dans l'agenda du bar | Actif depuis le 2026-09-10 |
 
-Toutes les migrations SQL (`supabase/migrations/`) et le code des 5 Edge
+Toutes les migrations SQL (`supabase/migrations/`) et le code des 6 Edge
 Functions (`supabase/functions/`) sont désormais versionnés dans ce dépôt. Ils
 n'existaient auparavant que dans le cloud Supabase : une suppression accidentelle
 était irrécupérable.
@@ -259,15 +260,75 @@ Autres points d'exploitation :
   horaires du bar changent, modifier les deux**. Un créneau déjà passé dans la
   journée en cours est refusé par le trigger `trg_validate_reservation_slot` et
   masqué par le formulaire.
-- **Cron menu** : job `canva-menu-sync-every-15-min`, visible via `select * from cron.job;`
-- **Agenda du mois** : affiché sous le menu, alimenté par la table `agenda_meta`
-  — **rien à voir avec la synchro Canva**. Une ligne unique, un `UPDATE` par mois.
+- **Cron menu** : job `canva-menu-sync-every-15-min`, visible via `select * from cron.job;`.
+
+  Attention : `cron.job_run_details` affiche toujours `succeeded` — il ne rend
+  compte que de l'appel `pg_net`, pas de la réponse de l'Edge Function. **Le
+  vrai indicateur de panne de la synchro Canva** est la réponse HTTP enregistrée
+  par `pg_net` :
+
+  ```sql
+  select created, status_code, content
+    from net._http_response
+   order by created desc
+   limit 20;
+  ```
+
+  Un `502 {"error":"token refresh failed", … "invalid_grant" …}` = la connexion
+  Canva est tombée → refaire **C2**. Ces lignes sont purgées au bout de quelques
+  heures ; pour un doute plus ancien, comparer `menu_meta.updated_at` (dernière
+  image réellement publiée) à `canva_oauth.updated_at` (dernier rafraîchissement
+  de jeton réussi) : si le second est figé, la synchro est morte depuis cette date.
+
+  Panne du 2026-09-10 : `invalid_grant / "Token lineage has been revoked"`,
+  de 09:00 à 15:13 (heure de Paris), résolue par une reconnexion OAuth (C2). Les
+  refresh tokens Canva sont à **usage unique** ; si deux exécutions (le cron et
+  l'appel public déclenché par `menu.html`) consomment le même jeton en même
+  temps, Canva révoque **toute la lignée** et seule une reconnexion manuelle la
+  rétablit. Le menu affiché reste alors figé sur la dernière version
+  synchronisée, sans aucun message d'erreur côté visiteur.
+
+  Deux garde-fous ont été ajoutés le jour même pour que ça ne se reproduise pas,
+  et pour que ça ne passe plus inaperçu si ça arrive quand même :
+
+  - **Un bail de synchro** (`canva_oauth.sync_lock_until`, posé et relâché par
+    `claim_canva_sync_lock` / `release_canva_sync_lock`). Les deux functions
+    Canva le prennent avant de toucher au jeton et le relâchent dans un
+    `finally` ; celle qui arrive en second passe simplement son tour. Le bail
+    porte un TTL de 120 s, donc une function tuée en vol ne bloque pas la
+    synchro plus de deux minutes. **Toute nouvelle function appelant l'API Canva
+    doit passer par ce bail.**
+  - **Un contrôle de santé horaire** (`menu-sync-health`, cron
+    `menu-sync-health-hourly` à :07). Si aucun rafraîchissement de jeton n'a
+    réussi depuis 2 h, il crée un évènement « journée entière » rouge dans
+    l'agenda Google du bar — ⚠️ *Menu du site figé — reconnecter Canva* — et
+    retient l'alerte ouverte dans `sync_alerts` pour ne pas la recréer à chaque
+    passage. Dès que la synchro repart, l'évènement est supprimé et la ligne
+    effacée automatiquement. L'agenda a été choisi parce que c'est le seul
+    endroit que l'équipe consulte déjà tous les jours (les réservations y
+    arrivent) : pas de service tiers ni de brique supplémentaire à maintenir.
+
+    ```sql
+    -- alerte en cours ?
+    select * from sync_alerts;
+    ```
+
+    Si la connexion Google est tombée elle aussi, aucune ligne n'est posée et le
+    passage suivant réessaiera — plutôt que de croire l'équipe prévenue.
+- **Agenda du mois** : l'**affiche du mois** est affichée sous le menu, alimentée
+  par la table `agenda_meta` — **rien à voir avec la synchro Canva**. Une ligne
+  unique, un `UPDATE` par mois.
+
+  Depuis le 2026-09-10 la page n'affiche **que l'affiche** : la transcription en
+  cartes a été retirée, elle faisait doublon avec l'affiche — qui porte déjà son
+  propre titre et se lit très bien une fois agrandie. Les colonnes `events` et
+  `highlight` existent toujours en base mais **ne sont plus lues** par `menu.html`.
 
   Procédure quand le gérant envoie la nouvelle affiche :
 
   1. Déposer l'affiche dans `agenda/` du dépôt (ex. `agenda/agenda-octobre-2026.jpg`)
      et pousser — Netlify la sert directement. **Il faut une image**, pas un PDF :
-     elle est affichée en aperçu sous les cartes et s'agrandit au toucher.
+     elle est affichée en aperçu sous le menu et s'agrandit au toucher.
 
      Si le gérant n'envoie qu'un PDF, on le convertit sans outil supplémentaire :
      `pdfjs-dist` rendu dans Chromium via Playwright, puis export du canvas en
@@ -278,18 +339,17 @@ Autres points d'exploitation :
   ```sql
   update agenda_meta
      set month_label = 'Octobre 2026',
-         highlight   = null,   -- ou jsonb_build_object('title',…,'when',…,'lines',…)
-         events      = '[…]'::jsonb,
          poster_path = 'agenda/agenda-octobre-2026.jpg',
          updated_at  = now()
    where id = 1;
   ```
 
-  Forme d'un évènement : `{when, note?, time?, title, lines[]}`. `when` est
-  l'étiquette de date, `note` la précision entre parenthèses, `time` l'horaire.
-  Si `events` est vide ou si la requête échoue, la section reste **masquée** —
-  l'agenda est un complément, son absence n'abîme pas la page du menu. Une
-  affiche introuvable masque seulement l'affiche : les cartes restent.
+  `month_label` n'est plus affiché à l'écran, mais reste **indispensable** : il
+  sert de date de péremption. `menu.html` le compare au mois courant et masque
+  toute la section s'il ne correspond pas — mieux vaut pas d'agenda du tout qu'un
+  agenda du mois dernier. Sans `poster_path`, ou si l'image est introuvable, la
+  section reste également masquée : l'agenda est un complément, son absence
+  n'abîme pas la page du menu.
 - **Rien ne notifie l'équipe d'une nouvelle réservation** en dehors de l'agenda
   et du tableur : pas d'e-mail ni de SMS. Le texte de confirmation de
   `reservation.html` mentionne qu'un SMS « peut » être envoyé — aucun envoi n'est

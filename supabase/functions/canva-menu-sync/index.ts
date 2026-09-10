@@ -1,7 +1,13 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 const EXPORT_POLL_INTERVAL_MS = 2000;
 const EXPORT_POLL_TIMEOUT_MS = 45000;
+
+// Durée du bail de synchro. Il doit couvrir le pire cas (export Canva jusqu'à
+// 45 s, puis téléchargement et upload des pages) sans être si long qu'une
+// exécution tuée en cours de route bloque la synchro pendant des heures.
+const LOCK_TTL_SECONDS = 120;
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -10,31 +16,17 @@ function json(body: unknown, status = 200) {
   });
 }
 
-Deno.serve(async (req) => {
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  );
+type CanvaRow = {
+  design_id: string;
+  client_id: string;
+  client_secret: string;
+  refresh_token: string;
+  last_synced_design_updated_at: number | null;
+};
 
-  const { data: row, error: dbError } = await supabase
-    .from("canva_oauth")
-    .select("design_id, client_id, client_secret, refresh_token, sync_secret, last_synced_design_updated_at")
-    .eq("id", 1)
-    .single();
-
-  if (dbError || !row) {
-    return json({ error: "not configured" }, 500);
-  }
-
-  const providedSecret = req.headers.get("x-sync-secret");
-  if (!providedSecret || providedSecret !== row.sync_secret) {
-    return json({ error: "unauthorized" }, 401);
-  }
-
-  if (!row.refresh_token) {
-    return json({ error: "not authorized with canva yet" }, 412);
-  }
-
+// Le corps de la synchro, isolé pour que l'appelant puisse garantir la
+// libération du bail dans un `finally` quel que soit le chemin de sortie.
+async function runSync(supabase: SupabaseClient, row: CanvaRow): Promise<Response> {
   // Refresh tokens are single-use, so refresh + persist immediately on every run.
   const basicAuth = btoa(`${row.client_id}:${row.client_secret}`);
   const refreshResp = await fetch("https://api.canva.com/rest/v1/oauth/token", {
@@ -153,4 +145,49 @@ Deno.serve(async (req) => {
     .eq("id", 1);
 
   return json({ synced: true, page_count: urls.length, design_updated_at: currentUpdatedAt });
+}
+
+Deno.serve(async (req) => {
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+
+  const { data: row, error: dbError } = await supabase
+    .from("canva_oauth")
+    .select("design_id, client_id, client_secret, refresh_token, sync_secret, last_synced_design_updated_at")
+    .eq("id", 1)
+    .single();
+
+  if (dbError || !row) {
+    return json({ error: "not configured" }, 500);
+  }
+
+  const providedSecret = req.headers.get("x-sync-secret");
+  if (!providedSecret || providedSecret !== row.sync_secret) {
+    return json({ error: "unauthorized" }, 401);
+  }
+
+  if (!row.refresh_token) {
+    return json({ error: "not authorized with canva yet" }, 412);
+  }
+
+  // Le refresh token Canva est à usage unique : deux synchros qui se recouvrent
+  // en consomment un seul et Canva révoque toute la lignée. Le bail garantit
+  // qu'une seule des deux functions le rejoue à la fois ; celle qui arrive
+  // ensuite passe simplement son tour — le cron repassera dans 15 min.
+  const { data: claimed, error: lockError } = await supabase
+    .rpc("claim_canva_sync_lock", { p_ttl_seconds: LOCK_TTL_SECONDS });
+  if (lockError) {
+    return json({ error: "failed to claim sync lock", detail: lockError.message }, 500);
+  }
+  if (!claimed) {
+    return json({ synced: false, reason: "locked" });
+  }
+
+  try {
+    return await runSync(supabase, row as CanvaRow);
+  } finally {
+    await supabase.rpc("release_canva_sync_lock");
+  }
 });

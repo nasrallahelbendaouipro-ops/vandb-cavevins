@@ -52,14 +52,17 @@ Schema changes go in a new dated file under `supabase/migrations/` — never edi
 
 ## Integrations (Supabase Edge Functions)
 
-All five functions run with `verify_jwt = false` and authenticate themselves. Source of truth is `supabase/functions/`; redeploy from there after editing.
+All six functions run with `verify_jwt = false` and authenticate themselves. Source of truth is `supabase/functions/`; redeploy from there after editing.
 
 - **`canva-menu-sync`** — cron (`canva-menu-sync-every-15-min`, via `pg_cron` + `pg_net`), auth by `x-sync-secret`. Exports the Canva menu design to PNG and uploads it to Storage, but only when the design's `updated_at` actually changed.
 - **`canva-menu-sync-public`** — same job, triggered by `menu.html` on load so an edit shows up immediately. Publicly reachable, 10 s cooldown, CORS pinned to the Netlify origin — **update that origin if the site moves to a custom domain**.
 - **`reservation-calendar-sync`** — called by the `notify_reservation_created` trigger. Creates the Calendar event, then appends to the Sheet at a row number claimed atomically via `claim_next_sheet_row()`. Creates the spreadsheet on first use if `spreadsheet_id` is null. Failures land in `reservations.calendar_sync_error`, which is the only monitoring signal the system has.
+- **`menu-sync-health`** — cron (`menu-sync-health-hourly`), auth by `x-sync-secret`. Watches `canva_oauth.updated_at`; if no token refresh has succeeded for 2 h it opens an all-day alert event on the bar's Google Calendar and records it in `sync_alerts`, then deletes both once the sync recovers. Without it a broken Canva sync is invisible — the site just keeps serving the last synced menu.
 - **`canva-oauth-callback` / `google-oauth-callback`** — OAuth code exchange. Start a (re)connection with `scripts/oauth-connect.py <google|canva> --client-id ...`.
 
 Canva refresh tokens are single-use (persist the new one on every refresh); Google's are not. Don't swap that handling between the two.
+
+**Because Canva's are single-use, the two Canva functions must never run concurrently** — a replayed refresh token makes Canva revoke the whole lineage (`invalid_grant / "Token lineage has been revoked"`), which only a manual OAuth reconnection fixes. That happened on 2026-09-10. Both functions therefore take a shared lease (`claim_canva_sync_lock` / `release_canva_sync_lock`, backed by `canva_oauth.sync_lock_until`) and release it in a `finally`. Keep any new caller of the Canva API inside that lease.
 
 **Because the anon key has INSERT-only rights on `reservations`, any admin/manager-facing view (e.g. a list of upcoming bookings) needs a new read path — a scoped RPC or a service-role-backed endpoint — not a direct table `SELECT` from the client.**
 

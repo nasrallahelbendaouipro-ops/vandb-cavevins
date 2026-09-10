@@ -54,7 +54,7 @@ Navigateur ──▶ Supabase (anon, INSERT seul sur reservations)
                   └─ pg_cron ──▶ Edge Function ──▶ Canva API ──▶ Storage (images du menu)
 ```
 
-Les cinq Edge Functions et les migrations SQL sont versionnées sous
+Les six Edge Functions et les migrations SQL sont versionnées sous
 `supabase/` : l'infrastructure se relit dans l'historique du dépôt, elle n'est
 pas cliquée dans une interface.
 
@@ -94,7 +94,7 @@ vandb-redesign.html      Page vitrine principale
 menu.html                Menu du jour + agenda du mois
 reservation.html         Formulaire de réservation
 supabase/migrations/     Schéma, RLS, triggers, cron (SQL versionné)
-supabase/functions/      5 Edge Functions Deno (Canva, Google, OAuth)
+supabase/functions/      6 Edge Functions Deno (Canva, Google, OAuth, supervision)
 docs/PRODUCTION.md       Runbook : URLs, exploitation, bascule de comptes
 scripts/                 Outillage OAuth
 ```

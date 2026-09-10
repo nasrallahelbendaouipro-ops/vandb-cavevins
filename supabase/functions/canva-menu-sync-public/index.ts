@@ -1,9 +1,14 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 const EXPORT_POLL_INTERVAL_MS = 2000;
 const EXPORT_POLL_TIMEOUT_MS = 45000;
 const CHECK_COOLDOWN_MS = 10000;
 const TOKEN_EXPIRY_BUFFER_MS = 60000;
+
+// Même durée que dans `canva-menu-sync` : les deux functions se partagent le
+// bail, il doit couvrir le pire cas de l'une comme de l'autre.
+const LOCK_TTL_SECONDS = 120;
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "https://vandb-cavevins.netlify.app",
@@ -19,39 +24,23 @@ function json(body: unknown, status = 200) {
   });
 }
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: CORS_HEADERS });
-  }
+type CanvaRow = {
+  design_id: string;
+  client_id: string;
+  client_secret: string;
+  access_token: string | null;
+  refresh_token: string;
+  access_token_expires_at: string | null;
+  last_synced_design_updated_at: number | null;
+};
 
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  );
-
-  const { data: row, error: dbError } = await supabase
-    .from("canva_oauth")
-    .select("design_id, client_id, client_secret, access_token, refresh_token, access_token_expires_at, last_synced_design_updated_at, last_checked_at")
-    .eq("id", 1)
-    .single();
-
-  if (dbError || !row) {
-    return json({ error: "not configured" }, 500);
-  }
-  if (!row.refresh_token) {
-    return json({ error: "not authorized with canva yet" }, 412);
-  }
-
-  // Throttle: don't hammer Canva's API if many people load the page at once.
-  if (row.last_checked_at && Date.now() - new Date(row.last_checked_at).getTime() < CHECK_COOLDOWN_MS) {
-    return json({ synced: false, reason: "cooldown" });
-  }
-  await supabase.from("canva_oauth").update({ last_checked_at: new Date().toISOString() }).eq("id", 1);
-
+// Le corps de la synchro, isolé pour que l'appelant puisse garantir la
+// libération du bail dans un `finally` quel que soit le chemin de sortie.
+async function runSync(supabase: SupabaseClient, row: CanvaRow): Promise<Response> {
   // Only refresh the access token when it's actually close to expiring —
   // refresh tokens are single-use, so refreshing on every page load risks
   // concurrent requests racing each other.
-  let accessToken = row.access_token as string | null;
+  let accessToken = row.access_token;
   const stillValid = row.access_token_expires_at &&
     new Date(row.access_token_expires_at).getTime() > Date.now() + TOKEN_EXPIRY_BUFFER_MS;
 
@@ -144,4 +133,55 @@ Deno.serve(async (req) => {
   await supabase.from("canva_oauth").update({ last_synced_design_updated_at: currentUpdatedAt }).eq("id", 1);
 
   return json({ synced: true, page_count: urls.length, design_updated_at: currentUpdatedAt });
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+
+  const { data: row, error: dbError } = await supabase
+    .from("canva_oauth")
+    .select("design_id, client_id, client_secret, access_token, refresh_token, access_token_expires_at, last_synced_design_updated_at, last_checked_at")
+    .eq("id", 1)
+    .single();
+
+  if (dbError || !row) {
+    return json({ error: "not configured" }, 500);
+  }
+  if (!row.refresh_token) {
+    return json({ error: "not authorized with canva yet" }, 412);
+  }
+
+  // Throttle: don't hammer Canva's API if many people load the page at once.
+  if (row.last_checked_at && Date.now() - new Date(row.last_checked_at).getTime() < CHECK_COOLDOWN_MS) {
+    return json({ synced: false, reason: "cooldown" });
+  }
+  await supabase.from("canva_oauth").update({ last_checked_at: new Date().toISOString() }).eq("id", 1);
+
+  // Le cooldown ne protège que de la charge, pas de la course : il ne voit pas
+  // le cron, qui n'y touche pas. Or le refresh token Canva est à usage unique —
+  // une ouverture de menu.html tombant pile sur le passage du cron suffit à
+  // faire révoquer toute la lignée de jetons. Seul le bail partagé l'évite.
+  const { data: claimed, error: lockError } = await supabase
+    .rpc("claim_canva_sync_lock", { p_ttl_seconds: LOCK_TTL_SECONDS });
+  if (lockError) {
+    return json({ error: "failed to claim sync lock", detail: lockError.message }, 500);
+  }
+  if (!claimed) {
+    // Une synchro est déjà en cours : le visiteur verra le résultat au
+    // prochain chargement, ce qui vaut mieux que de casser la lignée.
+    return json({ synced: false, reason: "locked" });
+  }
+
+  try {
+    return await runSync(supabase, row as CanvaRow);
+  } finally {
+    await supabase.rpc("release_canva_sync_lock");
+  }
 });
