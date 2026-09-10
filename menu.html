@@ -321,28 +321,52 @@
 
     // 1. Realtime — Supabase pousse l'UPDATE de menu_meta aux pages abonnées.
     //    C'est la voie instantanée ; les deux suivantes sont des filets.
+    const RESUBSCRIBE_DELAY_MS = 10000;
+    let canalLive = null;
+
     function sAbonnerAuxChangements(shown) {
       try {
-        sb.channel('menu-meta-live')
+        if (canalLive) { sb.removeChannel(canalLive); canalLive = null; }
+        canalLive = sb.channel('menu-meta-live')
           .on('postgres_changes',
               { event: 'UPDATE', schema: 'public', table: 'menu_meta' },
               () => rafraichirSiNouvelleVersion(shown))
-          .subscribe();
+          .subscribe((statut) => {
+            // Un téléphone qui se met en veille, un passage de la 4G au wifi :
+            // le websocket tombe et ne se rétablit pas toujours de lui-même.
+            // On se réabonne, et on relit dès que le canal est revenu pour
+            // rattraper ce qui s'est publié pendant la coupure.
+            if (statut === 'CHANNEL_ERROR' || statut === 'TIMED_OUT' || statut === 'CLOSED') {
+              setTimeout(() => sAbonnerAuxChangements(shown), RESUBSCRIBE_DELAY_MS);
+            } else if (statut === 'SUBSCRIBED') {
+              rafraichirSiNouvelleVersion(shown);
+            }
+          });
       } catch (e) {
         // Websocket bloqué (réseau d'entreprise, extension) : le sondage
         // ci-dessous prend le relais, la page reste fonctionnelle.
       }
     }
 
-    // 2. Retour sur l'onglet — le scénario même du gérant qui vient de
-    //    modifier Canva. On redemande une synchro puis on relit.
-    function surveillerLeRetourSurLOnglet(shown) {
-      document.addEventListener('visibilitychange', async () => {
-        if (document.visibilityState !== 'visible') return;
-        await rafraichirSiNouvelleVersion(shown);
-        await checkCanvaForUpdates();
-        await rafraichirSiNouvelleVersion(shown);
-      });
+    // 2. Réveil de la page — le scénario même du gérant qui modifie Canva à
+    //    côté puis revient au menu. On redemande une synchro et on relit.
+    function reverifierMaintenant(shown) {
+      rafraichirSiNouvelleVersion(shown);
+      checkCanvaForUpdates().then(() => rafraichirSiNouvelleVersion(shown));
+    }
+
+    function surveillerLeReveil(shown) {
+      const reveil = () => {
+        if (document.visibilityState === 'visible') reverifierMaintenant(shown);
+      };
+      // Trois évènements, parce qu'aucun ne couvre tous les cas : `pageshow`
+      // rattrape le retour depuis le cache arrière (iOS quand on rebascule
+      // depuis l'appli Canva, où `visibilitychange` ne suffit pas), et `focus`
+      // complète sur ordinateur. Un doublon est sans conséquence : une lecture
+      // d'une ligne, et la function publique a son propre garde-fou de 10 s.
+      document.addEventListener('visibilitychange', reveil);
+      window.addEventListener('pageshow', reveil);
+      window.addEventListener('focus', reveil);
     }
 
     // 3. Sondage lent, uniquement quand la page est visible : inutile de
@@ -355,7 +379,7 @@
 
     function resterAJour(shown) {
       sAbonnerAuxChangements(shown);
-      surveillerLeRetourSurLOnglet(shown);
+      surveillerLeReveil(shown);
       sonderRegulierement(shown);
     }
 

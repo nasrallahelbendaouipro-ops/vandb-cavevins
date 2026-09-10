@@ -15,7 +15,7 @@ du bar** plutôt que sur le compte personnel utilisé pendant le développement.
 | Base + Storage + Edge Functions | Supabase, projet `vandb-reservations` (`vfkjiprgawimhmieikyw`), région `eu-west-1` | Actif |
 | Réservations → Google Agenda | Edge Function `reservation-calendar-sync` | Actif |
 | Réservations → Google Sheets | même function (onglets « Résumé quotidien » + « Réservations ») | Actif |
-| Menu Canva → site | Edge Functions `canva-menu-sync` (cron 30 s) et `canva-menu-sync-public` (à l'ouverture de `menu.html`) | Actif |
+| Menu Canva → site | Edge Functions `canva-menu-sync` (cron 15 s) et `canva-menu-sync-public` (à l'ouverture de `menu.html`) | Actif |
 | Supervision de la synchro menu | Edge Function `menu-sync-health` (cron horaire) → alerte dans l'agenda du bar | Actif depuis le 2026-09-10 |
 
 Toutes les migrations SQL (`supabase/migrations/`) et le code des 6 Edge
@@ -196,7 +196,7 @@ Puis, dans l'ordre :
 1. Ouvrir <https://vandb-cavevins.netlify.app/menu.html> : les pages du menu
    doivent s'afficher et « Menu mis à jour … » refléter la synchro récente.
    Modifier une virgule dans le design Canva, recharger : le menu doit suivre
-   (immédiatement via la synchro à l'ouverture, sinon sous ~30 s via le cron).
+   (immédiatement via la synchro à l'ouverture, sinon sous ~15 s via le cron).
 2. Passer une réservation de test sur <https://vandb-cavevins.netlify.app/reservation.html>.
 3. Vérifier qu'elle apparaît dans l'agenda **dédié du bar** et dans le **nouveau**
    tableur, puis :
@@ -260,7 +260,7 @@ Autres points d'exploitation :
   horaires du bar changent, modifier les deux**. Un créneau déjà passé dans la
   journée en cours est refusé par le trigger `trg_validate_reservation_slot` et
   masqué par le formulaire.
-- **Cron menu** : job `canva-menu-sync-every-30-sec`, visible via `select * from cron.job;`.
+- **Cron menu** : job `canva-menu-sync-every-15-sec`, visible via `select * from cron.job;`.
 
   Attention : `cron.job_run_details` affiche toujours `succeeded` — il ne rend
   compte que de l'appel `pg_net`, pas de la réponse de l'Edge Function. **Le
@@ -278,7 +278,7 @@ Autres points d'exploitation :
   Canva est tombée → refaire **C2**. Ces lignes sont purgées au bout de quelques
   heures ; pour un doute plus ancien, regarder `canva_oauth.last_sync_ok_at` :
   c'est la dernière interrogation réussie du design Canva, réécrite toutes les
-  30 s en fonctionnement normal. Si elle est figée, la synchro est morte depuis
+  15 s en fonctionnement normal. Si elle est figée, la synchro est morte depuis
   cette date. (`menu_meta.updated_at`, lui, ne bouge que quand le menu change
   réellement — il peut légitimement dater de plusieurs semaines.)
 
@@ -327,11 +327,11 @@ Autres points d'exploitation :
 
   | Déclencheur | Délai |
   | --- | --- |
-  | Cron `canva-menu-sync-every-30-sec` | détection en ≤ 30 s |
+  | Cron `canva-menu-sync-every-15-sec` | détection en ≤ 15 s |
   | Ouverture de `menu.html` (`canva-menu-sync-public`, cooldown 10 s) | détection immédiate |
-  | Export Canva des 5 pages + upload | ~15 à 25 s |
+  | Export Canva des 5 pages + upload | ~11 s |
 
-  Soit **~25 s** si quelqu'un ouvre la page au bon moment, **~55 s** au pire.
+  Soit **~18 s en moyenne**, **~26 s au pire**.
 
   Côté page, `menu.html` reste à l'écoute **tant qu'elle est ouverte**, par trois
   moyens complémentaires :
@@ -345,6 +345,14 @@ Autres points d'exploitation :
   3. **Sondage de secours** toutes les 15 s, uniquement quand la page est
      visible, au cas où le websocket serait bloqué.
 
+  Le point 2 écoute `visibilitychange`, **`pageshow` et `focus`** — aucun des
+  trois ne couvre tous les cas à lui seul : `pageshow` rattrape le retour depuis
+  le cache arrière (iOS quand on rebascule depuis l'appli Canva), `focus`
+  complète sur ordinateur. Et l'abonnement Realtime se **réabonne tout seul**
+  après un `CHANNEL_ERROR` / `TIMED_OUT` / `CLOSED` (veille du téléphone,
+  passage 4G ↔ wifi), en relisant dans la foulée pour rattraper ce qui a été
+  publié pendant la coupure.
+
   Le rendu conserve l'onglet ouvert : une mise à jour en direct ne renvoie pas le
   lecteur à la première page.
 
@@ -357,8 +365,8 @@ Autres points d'exploitation :
   Mesuré de bout en bout sur une vraie modification : design Canva modifié à
   14:04:37 UTC, menu republié à 14:04:46, page mise à jour à 14:04:49 — **12 s**.
 
-  Descendre sous 30 s n'apporterait presque rien : c'est l'export Canva qui
-  domine désormais, pas l'attente du prochain passage.
+  Descendre sous 15 s n'apporterait plus rien : l'export Canva (~11 s) devient
+  l'essentiel du délai, et il n'est pas compressible de notre côté.
 - **Agenda du mois** : l'**affiche du mois** est affichée sous le menu, alimentée
   par la table `agenda_meta` — **rien à voir avec la synchro Canva**. Une ligne
   unique, un `UPDATE` par mois.
