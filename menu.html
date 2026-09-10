@@ -205,6 +205,22 @@
     }
     lightbox.addEventListener('click', () => lightbox.classList.remove('on'));
 
+    function indexOngletActif() {
+      const tabs = Array.from(tabsEl.querySelectorAll('.tab'));
+      const i = tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
+      return i < 0 ? 0 : i;
+    }
+
+    function activerOnglet(index) {
+      const tabs = tabsEl.querySelectorAll('.tab');
+      if (index < 0 || index >= tabs.length) index = 0;
+      tabs.forEach(t => t.setAttribute('aria-selected', 'false'));
+      panelsEl.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+      if (tabs[index]) tabs[index].setAttribute('aria-selected', 'true');
+      const panel = document.getElementById(`panel-${index + 1}`);
+      if (panel) panel.classList.add('on');
+    }
+
     function renderMenu(pageCount, updatedAt, pageTitles) {
       panelsEl.innerHTML = '';
       tabsEl.innerHTML = '';
@@ -238,12 +254,7 @@
           tab.textContent = (pageTitles && pageTitles[i - 1]) || `Page ${i}`;
           tab.setAttribute('aria-controls', `panel-${i}`);
           tab.setAttribute('aria-selected', i === 1 ? 'true' : 'false');
-          tab.addEventListener('click', () => {
-            tabsEl.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', 'false'));
-            panelsEl.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
-            tab.setAttribute('aria-selected', 'true');
-            document.getElementById(`panel-${i}`).classList.add('on');
-          });
+          tab.addEventListener('click', () => activerOnglet(i - 1));
           tabsEl.appendChild(tab);
         }
       }
@@ -283,8 +294,12 @@
 
     function renderIfUsable(data) {
       if (!data || !data.page_count || data.page_count < 1) return false;
+      // Une mise à jour en direct ne doit pas renvoyer le lecteur à la première
+      // page : on retient l'onglet ouvert et on le rétablit après le rendu.
+      const ongletOuvert = indexOngletActif();
       renderedUpdatedAt = data.updated_at;
       renderMenu(data.page_count, data.updated_at, data.page_titles);
+      activerOnglet(ongletOuvert);
       return true;
     }
 
@@ -297,18 +312,51 @@
       return true;
     }
 
-    // Cas où la synchro est en cours ailleurs (cooldown, bail pris par le cron)
-    // ou n'a pas répondu à temps : on guette la nouvelle version au lieu
-    // d'obliger le visiteur à recharger la page lui-même.
-    const WATCH_INTERVAL_MS = 4000;
-    const WATCH_TIMEOUT_MS = 60000;
+    // ── Rester à jour tant que la page est ouverte ─────────────────
+    // Une fenêtre de guet de quelques secondes après le chargement ne suffit
+    // pas : le cas courant est justement d'avoir le menu déjà ouvert, d'aller
+    // modifier Canva, puis de revenir. Trois mécanismes se complètent.
 
-    async function guetterNouvelleVersion(shown) {
-      const deadline = Date.now() + WATCH_TIMEOUT_MS;
-      while (Date.now() < deadline) {
-        await new Promise((r) => setTimeout(r, WATCH_INTERVAL_MS));
-        if (await rafraichirSiNouvelleVersion(shown)) return;
+    const POLL_INTERVAL_MS = 15000;
+
+    // 1. Realtime — Supabase pousse l'UPDATE de menu_meta aux pages abonnées.
+    //    C'est la voie instantanée ; les deux suivantes sont des filets.
+    function sAbonnerAuxChangements(shown) {
+      try {
+        sb.channel('menu-meta-live')
+          .on('postgres_changes',
+              { event: 'UPDATE', schema: 'public', table: 'menu_meta' },
+              () => rafraichirSiNouvelleVersion(shown))
+          .subscribe();
+      } catch (e) {
+        // Websocket bloqué (réseau d'entreprise, extension) : le sondage
+        // ci-dessous prend le relais, la page reste fonctionnelle.
       }
+    }
+
+    // 2. Retour sur l'onglet — le scénario même du gérant qui vient de
+    //    modifier Canva. On redemande une synchro puis on relit.
+    function surveillerLeRetourSurLOnglet(shown) {
+      document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState !== 'visible') return;
+        await rafraichirSiNouvelleVersion(shown);
+        await checkCanvaForUpdates();
+        await rafraichirSiNouvelleVersion(shown);
+      });
+    }
+
+    // 3. Sondage lent, uniquement quand la page est visible : inutile de
+    //    solliciter la base pour un téléphone posé écran éteint sur la table.
+    function sonderRegulierement(shown) {
+      setInterval(() => {
+        if (document.visibilityState === 'visible') rafraichirSiNouvelleVersion(shown);
+      }, POLL_INTERVAL_MS);
+    }
+
+    function resterAJour(shown) {
+      sAbonnerAuxChangements(shown);
+      surveillerLeRetourSurLOnglet(shown);
+      sonderRegulierement(shown);
     }
 
     async function loadMenu() {
@@ -328,18 +376,12 @@
       const shown = renderIfUsable(cached);
       if (!shown) showState(emptyState);
 
-      syncDone.then(async (result) => {
-        // Le design n'a pas bougé : rien à attendre, on ne touche à rien.
-        if (result && result.reason === 'unchanged') return;
+      // La page reste à l'écoute pour toute la durée de la visite, et plus
+      // seulement pendant la minute qui suit le chargement.
+      resterAJour(shown);
 
-        // La function a fini le travail elle-même : la nouvelle version est
-        // déjà en base, une seule relecture suffit.
-        if (await rafraichirSiNouvelleVersion(shown)) return;
-
-        // Sinon (cooldown, bail déjà pris par le cron, appel expiré) le travail
-        // se termine ailleurs : on guette le résultat pendant une minute.
-        await guetterNouvelleVersion(shown);
-      });
+      // Le premier appel, lui, peut rapporter du neuf immédiatement.
+      syncDone.then(() => rafraichirSiNouvelleVersion(shown));
     }
 
     // ── Agenda du mois ─────────────────────────────────────────────

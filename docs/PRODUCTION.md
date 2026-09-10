@@ -333,12 +333,29 @@ Autres points d'exploitation :
 
   Soit **~25 s** si quelqu'un ouvre la page au bon moment, **~55 s** au pire.
 
-  Côté page, `menu.html` ne se contente plus d'un seul coup d'œil après l'appel :
-  si la synchro se termine ailleurs (cooldown, bail pris par le cron) ou met plus
-  longtemps que prévu, la page guette la nouvelle version pendant une minute
-  (`WATCH_INTERVAL_MS` / `WATCH_TIMEOUT_MS`) et se met à jour toute seule. Le
-  gérant qui vient de modifier Canva voit donc le menu changer sous ses yeux,
-  sans recharger.
+  Côté page, `menu.html` reste à l'écoute **tant qu'elle est ouverte**, par trois
+  moyens complémentaires :
+
+  1. **Supabase Realtime** — `menu_meta` est publiée dans `supabase_realtime`,
+     donc l'`UPDATE` est poussé aux pages abonnées. Mesuré : **2,6 s** entre
+     l'écriture en base et la réception par la page.
+  2. **Retour sur l'onglet** (`visibilitychange`) — le scénario même du gérant
+     qui modifie Canva à côté puis revient : la page redemande une synchro et
+     relit aussitôt.
+  3. **Sondage de secours** toutes les 15 s, uniquement quand la page est
+     visible, au cas où le websocket serait bloqué.
+
+  Le rendu conserve l'onglet ouvert : une mise à jour en direct ne renvoie pas le
+  lecteur à la première page.
+
+  Un premier essai s'était contenté de guetter la nouvelle version pendant les
+  60 s suivant le chargement. C'était insuffisant, et pour le cas d'usage
+  principal : qui laissait le menu ouvert puis allait modifier Canva devait
+  recharger à la main. **Toute évolution ici doit garder l'écoute active pour
+  toute la durée de la visite**, pas seulement au chargement.
+
+  Mesuré de bout en bout sur une vraie modification : design Canva modifié à
+  14:04:37 UTC, menu republié à 14:04:46, page mise à jour à 14:04:49 — **12 s**.
 
   Descendre sous 30 s n'apporterait presque rien : c'est l'export Canva qui
   domine désormais, pas l'attente du prochain passage.
