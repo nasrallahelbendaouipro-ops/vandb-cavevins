@@ -15,7 +15,7 @@ du bar** plutôt que sur le compte personnel utilisé pendant le développement.
 | Base + Storage + Edge Functions | Supabase, projet `vandb-reservations` (`vfkjiprgawimhmieikyw`), région `eu-west-1` | Actif |
 | Réservations → Google Agenda | Edge Function `reservation-calendar-sync` | Actif |
 | Réservations → Google Sheets | même function (onglets « Résumé quotidien » + « Réservations ») | Actif |
-| Menu Canva → site | Edge Functions `canva-menu-sync` (cron 15 min) et `canva-menu-sync-public` (à l'ouverture de `menu.html`) | Actif |
+| Menu Canva → site | Edge Functions `canva-menu-sync` (cron 30 s) et `canva-menu-sync-public` (à l'ouverture de `menu.html`) | Actif |
 | Supervision de la synchro menu | Edge Function `menu-sync-health` (cron horaire) → alerte dans l'agenda du bar | Actif depuis le 2026-09-10 |
 
 Toutes les migrations SQL (`supabase/migrations/`) et le code des 6 Edge
@@ -196,7 +196,7 @@ Puis, dans l'ordre :
 1. Ouvrir <https://vandb-cavevins.netlify.app/menu.html> : les pages du menu
    doivent s'afficher et « Menu mis à jour … » refléter la synchro récente.
    Modifier une virgule dans le design Canva, recharger : le menu doit suivre
-   (immédiatement via la synchro à l'ouverture, sinon sous 15 min via le cron).
+   (immédiatement via la synchro à l'ouverture, sinon sous ~30 s via le cron).
 2. Passer une réservation de test sur <https://vandb-cavevins.netlify.app/reservation.html>.
 3. Vérifier qu'elle apparaît dans l'agenda **dédié du bar** et dans le **nouveau**
    tableur, puis :
@@ -260,7 +260,7 @@ Autres points d'exploitation :
   horaires du bar changent, modifier les deux**. Un créneau déjà passé dans la
   journée en cours est refusé par le trigger `trg_validate_reservation_slot` et
   masqué par le formulaire.
-- **Cron menu** : job `canva-menu-sync-every-15-min`, visible via `select * from cron.job;`.
+- **Cron menu** : job `canva-menu-sync-every-30-sec`, visible via `select * from cron.job;`.
 
   Attention : `cron.job_run_details` affiche toujours `succeeded` — il ne rend
   compte que de l'appel `pg_net`, pas de la réponse de l'Edge Function. **Le
@@ -276,9 +276,11 @@ Autres points d'exploitation :
 
   Un `502 {"error":"token refresh failed", … "invalid_grant" …}` = la connexion
   Canva est tombée → refaire **C2**. Ces lignes sont purgées au bout de quelques
-  heures ; pour un doute plus ancien, comparer `menu_meta.updated_at` (dernière
-  image réellement publiée) à `canva_oauth.updated_at` (dernier rafraîchissement
-  de jeton réussi) : si le second est figé, la synchro est morte depuis cette date.
+  heures ; pour un doute plus ancien, regarder `canva_oauth.last_sync_ok_at` :
+  c'est la dernière interrogation réussie du design Canva, réécrite toutes les
+  30 s en fonctionnement normal. Si elle est figée, la synchro est morte depuis
+  cette date. (`menu_meta.updated_at`, lui, ne bouge que quand le menu change
+  réellement — il peut légitimement dater de plusieurs semaines.)
 
   Panne du 2026-09-10 : `invalid_grant / "Token lineage has been revoked"`,
   de 09:00 à 15:13 (heure de Paris), résolue par une reconnexion OAuth (C2). Les
@@ -300,7 +302,7 @@ Autres points d'exploitation :
     doit passer par ce bail.**
   - **Un contrôle de santé horaire** (`menu-sync-health`, cron
     `menu-sync-health-hourly` à :07). Si aucun rafraîchissement de jeton n'a
-    réussi depuis 2 h, il crée un évènement « journée entière » rouge dans
+    réussi depuis 30 min, il crée un évènement « journée entière » rouge dans
     l'agenda Google du bar — ⚠️ *Menu du site figé — reconnecter Canva* — et
     retient l'alerte ouverte dans `sync_alerts` pour ne pas la recréer à chaque
     passage. Dès que la synchro repart, l'évènement est supprimé et la ligne
@@ -315,6 +317,31 @@ Autres points d'exploitation :
 
     Si la connexion Google est tombée elle aussi, aucune ligne n'est posée et le
     passage suivant réessaiera — plutôt que de croire l'équipe prévenue.
+- **Délai entre une modif Canva et son affichage sur le site** : moins d'une
+  minute, sans rien faire.
+
+  Il n'y a **pas de webhook possible** : l'API Canva Connect propose 11 types
+  d'évènements, tous liés à la collaboration (commentaires, partages,
+  approbations, mentions) — aucun ne signale la modification d'un design. Le
+  polling est donc la seule voie, d'où trois déclencheurs qui se complètent :
+
+  | Déclencheur | Délai |
+  | --- | --- |
+  | Cron `canva-menu-sync-every-30-sec` | détection en ≤ 30 s |
+  | Ouverture de `menu.html` (`canva-menu-sync-public`, cooldown 10 s) | détection immédiate |
+  | Export Canva des 5 pages + upload | ~15 à 25 s |
+
+  Soit **~25 s** si quelqu'un ouvre la page au bon moment, **~55 s** au pire.
+
+  Côté page, `menu.html` ne se contente plus d'un seul coup d'œil après l'appel :
+  si la synchro se termine ailleurs (cooldown, bail pris par le cron) ou met plus
+  longtemps que prévu, la page guette la nouvelle version pendant une minute
+  (`WATCH_INTERVAL_MS` / `WATCH_TIMEOUT_MS`) et se met à jour toute seule. Le
+  gérant qui vient de modifier Canva voit donc le menu changer sous ses yeux,
+  sans recharger.
+
+  Descendre sous 30 s n'apporterait presque rien : c'est l'export Canva qui
+  domine désormais, pas l'attente du prochain passage.
 - **Agenda du mois** : l'**affiche du mois** est affichée sous le menu, alimentée
   par la table `agenda_meta` — **rien à voir avec la synchro Canva**. Une ligne
   unique, un `UPDATE` par mois.

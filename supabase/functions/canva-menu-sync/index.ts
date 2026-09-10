@@ -3,6 +3,7 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 const EXPORT_POLL_INTERVAL_MS = 2000;
 const EXPORT_POLL_TIMEOUT_MS = 45000;
+const TOKEN_EXPIRY_BUFFER_MS = 60000;
 
 // Durée du bail de synchro. Il doit couvrir le pire cas (export Canva jusqu'à
 // 45 s, puis téléchargement et upload des pages) sans être si long qu'une
@@ -20,47 +21,61 @@ type CanvaRow = {
   design_id: string;
   client_id: string;
   client_secret: string;
+  access_token: string | null;
   refresh_token: string;
+  access_token_expires_at: string | null;
   last_synced_design_updated_at: number | null;
 };
 
 // Le corps de la synchro, isolé pour que l'appelant puisse garantir la
 // libération du bail dans un `finally` quel que soit le chemin de sortie.
 async function runSync(supabase: SupabaseClient, row: CanvaRow): Promise<Response> {
-  // Refresh tokens are single-use, so refresh + persist immediately on every run.
-  const basicAuth = btoa(`${row.client_id}:${row.client_secret}`);
-  const refreshResp = await fetch("https://api.canva.com/rest/v1/oauth/token", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "Authorization": `Basic ${basicAuth}`,
-    },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: row.refresh_token,
-    }),
-  });
+  // Les refresh tokens Canva sont à usage unique : chaque rotation est une
+  // occasion de casser la lignée. Cette function passe toutes les 30 s — la
+  // rafraîchir systématiquement ferait ~2 900 rotations par jour, pour rien,
+  // puisqu'un access token vit 4 h. On ne renouvelle donc qu'à l'approche de
+  // l'expiration, comme le fait `canva-menu-sync-public`.
+  let accessToken = row.access_token;
+  const stillValid = row.access_token_expires_at &&
+    new Date(row.access_token_expires_at).getTime() > Date.now() + TOKEN_EXPIRY_BUFFER_MS;
 
-  if (!refreshResp.ok) {
-    const errText = await refreshResp.text();
-    return json({ error: "token refresh failed", detail: errText }, 502);
-  }
+  if (!stillValid) {
+    const basicAuth = btoa(`${row.client_id}:${row.client_secret}`);
+    const refreshResp = await fetch("https://api.canva.com/rest/v1/oauth/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": `Basic ${basicAuth}`,
+      },
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: row.refresh_token,
+      }),
+    });
 
-  const refreshData = await refreshResp.json();
-  const accessToken = refreshData.access_token as string;
+    if (!refreshResp.ok) {
+      const errText = await refreshResp.text();
+      return json({ error: "token refresh failed", detail: errText }, 502);
+    }
 
-  const { error: tokenSaveError } = await supabase
-    .from("canva_oauth")
-    .update({
-      access_token: accessToken,
-      refresh_token: refreshData.refresh_token,
-      access_token_expires_at: new Date(Date.now() + refreshData.expires_in * 1000).toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", 1);
+    const refreshData = await refreshResp.json();
+    accessToken = refreshData.access_token as string;
 
-  if (tokenSaveError) {
-    return json({ error: "failed to persist refreshed token" }, 500);
+    // Le nouveau refresh token doit être persisté immédiatement : l'ancien est
+    // déjà mort à cet instant.
+    const { error: tokenSaveError } = await supabase
+      .from("canva_oauth")
+      .update({
+        access_token: accessToken,
+        refresh_token: refreshData.refresh_token,
+        access_token_expires_at: new Date(Date.now() + refreshData.expires_in * 1000).toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", 1);
+
+    if (tokenSaveError) {
+      return json({ error: "failed to persist refreshed token" }, 500);
+    }
   }
 
   // Check whether the design actually changed before spending an export.
@@ -73,6 +88,14 @@ async function runSync(supabase: SupabaseClient, row: CanvaRow): Promise<Respons
   }
   const design = await designResp.json();
   const currentUpdatedAt: number = design.design.updated_at;
+
+  // Arrivé ici, toute la chaîne jusqu'à Canva répond (jeton valide + API qui
+  // renvoie le design). C'est le signal de santé lu par `menu-sync-health`,
+  // qu'il y ait un export à faire ou non.
+  await supabase
+    .from("canva_oauth")
+    .update({ last_sync_ok_at: new Date().toISOString() })
+    .eq("id", 1);
 
   if (row.last_synced_design_updated_at === currentUpdatedAt) {
     return json({ synced: false, reason: "unchanged", design_updated_at: currentUpdatedAt });
@@ -155,7 +178,7 @@ Deno.serve(async (req) => {
 
   const { data: row, error: dbError } = await supabase
     .from("canva_oauth")
-    .select("design_id, client_id, client_secret, refresh_token, sync_secret, last_synced_design_updated_at")
+    .select("design_id, client_id, client_secret, access_token, refresh_token, access_token_expires_at, sync_secret, last_synced_design_updated_at")
     .eq("id", 1)
     .single();
 
@@ -175,7 +198,7 @@ Deno.serve(async (req) => {
   // Le refresh token Canva est à usage unique : deux synchros qui se recouvrent
   // en consomment un seul et Canva révoque toute la lignée. Le bail garantit
   // qu'une seule des deux functions le rejoue à la fois ; celle qui arrive
-  // ensuite passe simplement son tour — le cron repassera dans 15 min.
+  // ensuite passe simplement son tour — le cron repassera dans 30 s.
   const { data: claimed, error: lockError } = await supabase
     .rpc("claim_canva_sync_lock", { p_ttl_seconds: LOCK_TTL_SECONDS });
   if (lockError) {

@@ -16,15 +16,18 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const TOKEN_EXPIRY_BUFFER_MS = 60000;
 
-// `canva_oauth.updated_at` est réécrit à **chaque** passage du cron (toutes les
-// 15 min), puisque `canva-menu-sync` rafraîchit le jeton systématiquement. En
-// fonctionnement normal cette date a donc moins d'un quart d'heure. Deux heures
-// laissent passer quelques échecs transitoires sans crier au loup.
+// `canva_oauth.last_sync_ok_at` est réécrit à **chaque** interrogation réussie
+// du design Canva, soit toutes les 30 s en fonctionnement normal. Une demi-heure
+// de silence, c'est une soixantaine d'échecs consécutifs : ce n'est plus un
+// incident passager.
 //
-// Surtout, ne pas se baser sur `menu_meta.updated_at` : il ne bouge que quand le
-// design Canva change réellement et peut légitimement dater de plusieurs
-// semaines — un menu inchangé n'est pas une panne.
-const STALE_AFTER_MS = 2 * 60 * 60 * 1000;
+// Ne pas utiliser `canva_oauth.updated_at` : depuis que la function ne
+// rafraîchit le jeton qu'à l'approche de l'expiration, cette date ne bouge plus
+// que toutes les 4 h — elle déclencherait de fausses alertes en permanence.
+// Ni `menu_meta.updated_at` : il ne bouge que quand le design Canva change
+// réellement et peut légitimement dater de plusieurs semaines — un menu
+// inchangé n'est pas une panne.
+const STALE_AFTER_MS = 30 * 60 * 1000;
 
 const ALERT_KIND = "canva_menu_sync";
 
@@ -97,7 +100,7 @@ Deno.serve(async (req) => {
 
   const { data: canva, error: canvaError } = await supabase
     .from("canva_oauth")
-    .select("updated_at, sync_secret")
+    .select("last_sync_ok_at, sync_secret")
     .eq("id", 1)
     .single();
 
@@ -110,9 +113,8 @@ Deno.serve(async (req) => {
     return json({ error: "unauthorized" }, 401);
   }
 
-  const lastRefresh = canva.updated_at ? new Date(canva.updated_at).getTime() : 0;
-  const staleForMs = Date.now() - lastRefresh;
-  const degraded = staleForMs > STALE_AFTER_MS;
+  const lastOk = canva.last_sync_ok_at ? new Date(canva.last_sync_ok_at).getTime() : 0;
+  const degraded = Date.now() - lastOk > STALE_AFTER_MS;
 
   const { data: openAlert } = await supabase
     .from("sync_alerts")
@@ -122,7 +124,7 @@ Deno.serve(async (req) => {
 
   // ── Tout va bien, et rien n'était signalé ────────────────────────────────
   if (!degraded && !openAlert) {
-    return json({ healthy: true, last_refresh: canva.updated_at });
+    return json({ healthy: true, last_sync_ok: canva.last_sync_ok_at });
   }
 
   // ── Retour à la normale : on referme l'alerte ────────────────────────────
@@ -140,7 +142,7 @@ Deno.serve(async (req) => {
       }
     }
     await supabase.from("sync_alerts").delete().eq("kind", ALERT_KIND);
-    return json({ healthy: true, alert_resolved: true, last_refresh: canva.updated_at });
+    return json({ healthy: true, alert_resolved: true, last_sync_ok: canva.last_sync_ok_at });
   }
 
   // ── En panne, mais déjà signalée : ne pas remplir l'agenda de doublons ───
@@ -148,7 +150,7 @@ Deno.serve(async (req) => {
     return json({
       healthy: false,
       alert_already_open_since: openAlert.opened_at,
-      last_refresh: canva.updated_at,
+      last_sync_ok: canva.last_sync_ok_at,
     });
   }
 
@@ -161,7 +163,7 @@ Deno.serve(async (req) => {
     return json({ healthy: false, notified: false, reason: "google unavailable" }, 502);
   }
 
-  const detail = `Dernier rafraîchissement de jeton Canva réussi : ${frenchDateTime(canva.updated_at)}`;
+  const detail = `Dernière synchronisation réussie avec Canva : ${frenchDateTime(canva.last_sync_ok_at)}`;
   const eventResp = await fetch(
     `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(google.calendarId)}/events`,
     {
@@ -207,5 +209,5 @@ Deno.serve(async (req) => {
     return json({ healthy: false, notified: true, error: "failed to record alert", detail: insertError.message }, 500);
   }
 
-  return json({ healthy: false, notified: true, calendar_event_id: event.id, last_refresh: canva.updated_at });
+  return json({ healthy: false, notified: true, calendar_event_id: event.id, last_sync_ok: canva.last_sync_ok_at });
 });

@@ -254,15 +254,22 @@
 
     const SYNC_URL = 'https://vfkjiprgawimhmieikyw.supabase.co/functions/v1/canva-menu-sync-public';
 
+    // Le serveur peut mettre jusqu'à ~45 s (export Canva des 5 pages). On lui
+    // laisse 60 s avant d'abandonner : couper à 20 s comme avant faisait rater
+    // la nouvelle version au visiteur qui venait justement de la déclencher.
+    const SYNC_TIMEOUT_MS = 60000;
+
+    // Renvoie la réponse de la function, ou null si l'appel a échoué ou expiré.
+    // Best-effort : on n'empêche jamais l'affichage du menu déjà synchronisé.
     async function checkCanvaForUpdates() {
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 20000);
-        await fetch(SYNC_URL, { signal: controller.signal });
+        const timeout = setTimeout(() => controller.abort(), SYNC_TIMEOUT_MS);
+        const resp = await fetch(SYNC_URL, { signal: controller.signal });
         clearTimeout(timeout);
+        return await resp.json();
       } catch (e) {
-        // Best-effort: if the live check fails or times out, just show whatever
-        // is already synced rather than blocking the page.
+        return null;
       }
     }
 
@@ -281,13 +288,35 @@
       return true;
     }
 
+    // Réaffiche le menu si une version plus récente est disponible. Renvoie
+    // true dès qu'un remplacement a eu lieu, pour arrêter l'attente.
+    async function rafraichirSiNouvelleVersion(shown) {
+      const fresh = await fetchMenuMeta();
+      if (!fresh || fresh.updated_at === renderedUpdatedAt) return false;
+      if (!renderIfUsable(fresh) && shown) showState(emptyState);
+      return true;
+    }
+
+    // Cas où la synchro est en cours ailleurs (cooldown, bail pris par le cron)
+    // ou n'a pas répondu à temps : on guette la nouvelle version au lieu
+    // d'obliger le visiteur à recharger la page lui-même.
+    const WATCH_INTERVAL_MS = 4000;
+    const WATCH_TIMEOUT_MS = 60000;
+
+    async function guetterNouvelleVersion(shown) {
+      const deadline = Date.now() + WATCH_TIMEOUT_MS;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, WATCH_INTERVAL_MS));
+        if (await rafraichirSiNouvelleVersion(shown)) return;
+      }
+    }
+
     async function loadMenu() {
       showState(loadingState);
 
-      // La vérification Canva part en parallèle, sans await. Elle peut durer
-      // jusqu'à 20 s : faire attendre le visiteur tout ce temps devant un
-      // spinner, alors que le menu déjà synchronisé est disponible tout de
-      // suite, va contre l'intention « best-effort » de cette vérification.
+      // La vérification Canva part en parallèle, sans await : le menu déjà
+      // synchronisé s'affiche tout de suite, et la page se met à jour ensuite
+      // si la synchro rapporte du neuf.
       const syncDone = checkCanvaForUpdates();
 
       const cached = await fetchMenuMeta();
@@ -299,13 +328,17 @@
       const shown = renderIfUsable(cached);
       if (!shown) showState(emptyState);
 
-      // Une fois la synchro terminée, on ne rafraîchit l'affichage que si elle
-      // a réellement rapporté une nouvelle version — sinon rien ne bouge.
-      syncDone.then(async () => {
-        const fresh = await fetchMenuMeta();
-        if (fresh && fresh.updated_at !== renderedUpdatedAt) {
-          if (!renderIfUsable(fresh) && shown) showState(emptyState);
-        }
+      syncDone.then(async (result) => {
+        // Le design n'a pas bougé : rien à attendre, on ne touche à rien.
+        if (result && result.reason === 'unchanged') return;
+
+        // La function a fini le travail elle-même : la nouvelle version est
+        // déjà en base, une seule relecture suffit.
+        if (await rafraichirSiNouvelleVersion(shown)) return;
+
+        // Sinon (cooldown, bail déjà pris par le cron, appel expiré) le travail
+        // se termine ailleurs : on guette le résultat pendant une minute.
+        await guetterNouvelleVersion(shown);
       });
     }
 

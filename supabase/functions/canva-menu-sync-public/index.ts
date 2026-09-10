@@ -78,6 +78,14 @@ async function runSync(supabase: SupabaseClient, row: CanvaRow): Promise<Respons
   const design = await designResp.json();
   const currentUpdatedAt: number = design.design.updated_at;
 
+  // Arrivé ici, toute la chaîne jusqu'à Canva répond (jeton valide + API qui
+  // renvoie le design). C'est le signal de santé lu par `menu-sync-health`,
+  // qu'il y ait un export à faire ou non.
+  await supabase
+    .from("canva_oauth")
+    .update({ last_sync_ok_at: new Date().toISOString() })
+    .eq("id", 1);
+
   if (row.last_synced_design_updated_at === currentUpdatedAt) {
     return json({ synced: false, reason: "unchanged", design_updated_at: currentUpdatedAt });
   }
